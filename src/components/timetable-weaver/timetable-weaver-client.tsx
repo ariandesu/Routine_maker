@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -20,6 +21,7 @@ export default function TimetableWeaverClient() {
   const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
   const [headingText, setHeadingText] = useState<string>('My Weekly Schedule');
   const [isMounted, setIsMounted] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -136,17 +138,37 @@ export default function TimetableWeaverClient() {
       return;
     }
 
+    setIsExporting(true);
+
     toast({
       title: "Exporting...",
       description: `Your schedule is being prepared as a ${format} file.`,
     });
 
+    // Use a short timeout to allow the UI to update with isExporting=true
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const canvas = await html2canvas(printableRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: null, 
+        logging: false,
+        onclone: (document) => {
+            const body = document.body;
+            const root = document.documentElement;
+            const themeClassName = theme || 'theme-indigo';
+            
+            body.classList.add(themeClassName);
+            root.classList.add(themeClassName);
+            
+            const style = window.getComputedStyle(document.body);
+            const bgColor = style.getPropertyValue('--card').trim();
+            if (bgColor) {
+                body.style.backgroundColor = `hsl(${bgColor})`;
+            }
+        },
       });
+      setIsExporting(false);
 
       const cleanFileName = headingText.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       const fileName = `${cleanFileName || 'schedule'}.${format.toLowerCase()}`;
@@ -174,6 +196,7 @@ export default function TimetableWeaverClient() {
         description: `Your schedule has been downloaded as a ${format} file.`,
       });
     } catch (error) {
+      setIsExporting(false);
       console.error("Export failed", error);
       toast({
         variant: "destructive",
@@ -228,6 +251,7 @@ export default function TimetableWeaverClient() {
                   onUpdateEvent={handleUpdateEvent}
                   headingText={headingText}
                   onHeadingTextChange={setHeadingText}
+                  isExporting={isExporting}
                   />
                 </div>
             </div>
