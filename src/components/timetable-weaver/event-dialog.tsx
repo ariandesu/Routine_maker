@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { eventColors } from './data';
 import type { ScheduleEvent } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { ArrowDownToLine, ArrowUpToLine, Trash2 } from 'lucide-react';
 
 const eventSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }).max(50),
@@ -41,9 +42,13 @@ interface EventDialogProps {
   cellKey: string | null;
   eventData?: ScheduleEvent;
   onSave: (key: string, event: ScheduleEvent | null) => void;
+  onMergeDown: (key: string) => void;
+  onSplit: (key: string) => void;
+  isMergeable: boolean;
+  isSplittable: boolean;
 }
 
-export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: EventDialogProps) {
+export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, onMergeDown, onSplit, isMergeable, isSplittable }: EventDialogProps) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -72,6 +77,7 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
   const onSubmit = (data: EventFormValues) => {
     if (cellKey) {
       onSave(cellKey, {
+        ...eventData,
         title: data.title,
         subtitle: data.subtitle || '',
         color: data.color,
@@ -82,6 +88,18 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
   const handleDelete = () => {
     if (cellKey) {
       onSave(cellKey, null);
+    }
+  };
+
+  const handleMerge = () => {
+    if (cellKey) {
+      onMergeDown(cellKey);
+    }
+  };
+  
+  const handleSplit = () => {
+    if (cellKey) {
+      onSplit(cellKey);
     }
   };
 
@@ -156,16 +174,24 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
             />
           </form>
         </Form>
-        <DialogFooter className="sm:justify-between">
-          <div>
-            {eventData && (
-              <Button variant="destructive" onClick={handleDelete}>Delete Event</Button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit" form="event-form">Save</Button>
-          </div>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
+            <div className="flex gap-2 justify-start">
+                {eventData && (
+                    <>
+                        <Button variant="destructive" size="icon" onClick={handleDelete}><Trash2 className="h-4 w-4" /></Button>
+                        {isMergeable && (
+                            <Button variant="outline" size="icon" onClick={handleMerge}><ArrowDownToLine className="h-4 w-4" /></Button>
+                        )}
+                        {isSplittable && (
+                           <Button variant="outline" size="icon" onClick={handleSplit}><ArrowUpToLine className="h-4 w-4" /></Button>
+                        )}
+                    </>
+                )}
+            </div>
+            <div className="flex gap-2 justify-end">
+                <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                <Button type="submit" form="event-form">Save</Button>
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

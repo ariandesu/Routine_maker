@@ -73,7 +73,52 @@ export default function TimetableWeaverClient() {
         newSchedule[key] = event;
       } else {
         delete newSchedule[key];
+        // When deleting a merged event, we need to handle splitting
+        const [day, timeIndexStr] = key.split('-');
+        const timeIndex = parseInt(timeIndexStr, 10);
+        const deletedEvent = prev[key];
+        if (deletedEvent && deletedEvent.rowspan && deletedEvent.rowspan > 1) {
+          for (let i = 1; i < deletedEvent.rowspan; i++) {
+            delete newSchedule[`${day}-${timeIndex + i}`];
+          }
+        }
       }
+      return newSchedule;
+    });
+  };
+
+  const handleMergeDown = (key: string) => {
+    setSchedule(prev => {
+      const newSchedule = { ...prev };
+      const eventToMerge = newSchedule[key];
+      if (!eventToMerge) return prev;
+  
+      const [day, timeIndexStr] = key.split('-');
+      const timeIndex = parseInt(timeIndexStr, 10);
+      const currentSpan = eventToMerge.rowspan || 1;
+      const nextCellIndex = timeIndex + currentSpan;
+      const nextCellKey = `${day}-${nextCellIndex}`;
+      const eventToCover = newSchedule[nextCellKey];
+      const coveredSpan = eventToCover?.rowspan || 1;
+  
+      eventToMerge.rowspan = currentSpan + coveredSpan;
+
+      if(eventToCover) {
+        delete newSchedule[nextCellKey];
+      }
+  
+      return newSchedule;
+    });
+  };
+
+  const handleSplit = (key: string) => {
+    setSchedule(prev => {
+      const newSchedule = { ...prev };
+      const eventToSplit = newSchedule[key];
+      if (!eventToSplit || !eventToSplit.rowspan || eventToSplit.rowspan <= 1) return prev;
+  
+      delete eventToSplit.rowspan;
+      
       return newSchedule;
     });
   };
@@ -176,6 +221,8 @@ export default function TimetableWeaverClient() {
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
                   onUpdateEvent={handleUpdateEvent}
+                  onMergeDown={handleMergeDown}
+                  onSplit={handleSplit}
                   headingText={headingText}
                   onHeadingTextChange={setHeadingText}
                   />
