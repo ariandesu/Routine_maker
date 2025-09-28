@@ -2,6 +2,7 @@ export type ScheduleEvent = {
   title: string;
   subtitle: string;
   color: string;
+  rowSpan?: number;
 };
 
 export type ScheduleData = {

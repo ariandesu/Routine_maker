@@ -5,42 +5,96 @@ import { EventDialog } from './event-dialog';
 import { cn } from '@/lib/utils';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Rows3, Combine, Split } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 
 interface ScheduleGridProps {
   days: string[];
   timeSlots: string[];
   onTimeSlotsChange: (newTimeSlots: string[]) => void;
-  onDaysChange: (newDays: string[]) => void;
   schedule: ScheduleData;
-  onUpdateEvent: (key: string, event: ScheduleEvent | null) => void;
+  onUpdateEvent: (key: string, event: ScheduleEvent | null, keysToRemove?: string[]) => void;
   headingText: string;
   onHeadingTextChange: (text: string) => void;
 }
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, timeSlots, onTimeSlotsChange, onDaysChange, schedule, onUpdateEvent, headingText, onHeadingTextChange }, ref) => {
+  ({ days, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, headingText, onHeadingTextChange }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
+    const [selection, setSelection] = React.useState<Set<string>>(new Set());
+    const [isSelecting, setIsSelecting] = React.useState(false);
+    const [selectionAnchor, setSelectionAnchor] = React.useState<string | null>(null);
 
-    const handleCellClick = (day: string, timeIndex: number) => {
-      setSelectedCell(`${day}-${timeIndex}`);
+    const getCellKey = (day: string, timeIndex: number) => `${day}-${timeIndex}`;
+
+    const handleMouseDown = (day: string, timeIndex: number) => {
+      const key = getCellKey(day, timeIndex);
+      setIsSelecting(true);
+      setSelectionAnchor(key);
+      setSelection(new Set([key]));
     };
     
+    const handleMouseEnter = (day: string, timeIndex: number) => {
+      if (!isSelecting || !selectionAnchor) return;
+    
+      const newSelection = new Set<string>();
+      const [anchorDay, anchorTimeIndexStr] = selectionAnchor.split('-');
+      const anchorTimeIndex = parseInt(anchorTimeIndexStr, 10);
+    
+      if (day !== anchorDay) {
+        return; 
+      }
+    
+      const minTime = Math.min(anchorTimeIndex, timeIndex);
+      const maxTime = Math.max(anchorTimeIndex, timeIndex);
+    
+      for (let i = minTime; i <= maxTime; i++) {
+        // Only add cells to selection if they are not part of an already merged event (except for the head of it)
+        const key = getCellKey(day, i);
+        if(!isCellCovered(day, i) || i === minTime) {
+            newSelection.add(key);
+        } else {
+            // If we hit a covered cell, we can't merge over it, so we stop the selection.
+            // This is a simplification to prevent invalid merges.
+            break;
+        }
+      }
+      setSelection(newSelection);
+    };
+    
+    const handleMouseUp = () => {
+      setIsSelecting(false);
+      setSelectionAnchor(null);
+      if (selection.size === 1) {
+          const singleCellKey = Array.from(selection)[0];
+          const event = schedule[singleCellKey];
+          // If the single selected cell is part of a larger merged event, we want to edit the main event.
+          if (event && !event.rowSpan) {
+              const mainCellKey = findMainEventCellKeyFor(singleCellKey);
+              if (mainCellKey) {
+                setSelectedCell(mainCellKey);
+                return;
+              }
+          }
+          setSelectedCell(singleCellKey);
+      }
+    };
+    
+    const clearSelection = () => {
+      setSelection(new Set());
+    };
+
     const handleSaveEvent = (key: string, event: ScheduleEvent | null) => {
         onUpdateEvent(key, event);
         setSelectedCell(null);
+        clearSelection();
     }
 
     const handleTimeSlotChange = (index: number, value: string) => {
       const newTimeSlots = [...timeSlots];
       newTimeSlots[index] = value;
       onTimeSlotsChange(newTimeSlots);
-    };
-
-    const handleDayChange = (index: number, value: string) => {
-      const newDays = [...days];
-      newDays[index] = value;
-      onDaysChange(newDays);
     };
   
     const addTimeSlot = () => {
@@ -52,9 +106,107 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
       onTimeSlotsChange(newTimeSlots);
     };
 
+    const handleMerge = () => {
+        if (selection.size <= 1) return;
+        const sortedSelection = Array.from(selection).sort((a, b) => {
+            const [, timeA] = a.split('-');
+            const [, timeB] = b.split('-');
+            return parseInt(timeA) - parseInt(timeB);
+        });
+
+        const mainCellKey = sortedSelection[0];
+        const existingEvent = schedule[mainCellKey] || { title: 'New Event', subtitle: '', color: 'bg-gray-300' };
+        
+        const mergedEvent: ScheduleEvent = {
+            ...existingEvent,
+            rowSpan: selection.size,
+        };
+        const keysToRemove = sortedSelection.slice(1);
+        onUpdateEvent(mainCellKey, mergedEvent, keysToRemove);
+        clearSelection();
+    };
+
+    const handleUnmerge = () => {
+        const key = Array.from(selection)[0];
+        if (!key || !schedule[key] || !schedule[key].rowSpan) return;
+
+        const mainEvent = { ...schedule[key] };
+        delete mainEvent.rowSpan;
+
+        onUpdateEvent(key, mainEvent);
+        clearSelection();
+    };
+    
+    const isCellCovered = (day: string, timeIndex: number): boolean => {
+        for (let i = 1; i < timeSlots.length; i++) {
+            if (timeIndex - i < 0) break;
+            const potentialParentKey = getCellKey(day, timeIndex - i);
+            const parentEvent = schedule[potentialParentKey];
+            if (parentEvent && parentEvent.rowSpan && parentEvent.rowSpan > i) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const findMainEventCellKeyFor = (cellKey: string): string | null => {
+        const [day, timeIndexStr] = cellKey.split('-');
+        const timeIndex = parseInt(timeIndexStr, 10);
+        for (let i = 1; i <= timeIndex; i++) {
+            const potentialParentKey = getCellKey(day, timeIndex - i);
+            const parentEvent = schedule[potentialParentKey];
+            if (parentEvent && parentEvent.rowSpan && parentEvent.rowSpan > i) {
+                return potentialParentKey;
+            }
+        }
+        return null;
+    };
+
+    const renderMergeButton = () => {
+        if (selection.size <= 1) return null;
+        
+        const firstCellKey = Array.from(selection).sort((a, b) => parseInt(a.split('-')[1]) - parseInt(b.split('-')[1]))[0];
+        const [day, timeIndexStr] = firstCellKey.split('-');
+        const timeIndex = parseInt(timeIndexStr);
+
+        const gridElement = (ref.current as HTMLDivElement)?.querySelector(`[data-key="${firstCellKey}"]`);
+        if (!gridElement) return null;
+
+        const isAlreadyMerged = schedule[firstCellKey] && schedule[firstCellKey].rowSpan;
+
+        return (
+            <Popover open={selection.size > 1} onOpenChange={(isOpen) => !isOpen && clearSelection()}>
+                <PopoverTrigger asChild>
+                     <div className='absolute z-20' style={{ top: `${gridElement.offsetTop}px`, left: `${gridElement.offsetLeft + gridElement.offsetWidth}px` }}></div>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-1'>
+                    {isAlreadyMerged ? (
+                        <Button onClick={handleUnmerge} size="sm"><Split className="mr-2 h-4 w-4" /> Unmerge</Button>
+                    ) : (
+                        <Button onClick={handleMerge} size="sm"><Combine className="mr-2 h-4 w-4" /> Merge</Button>
+                    )}
+                </PopoverContent>
+            </Popover>
+        )
+    };
+    
+    const eventForDialog = () => {
+        if (!selectedCell) return undefined;
+        const event = schedule[selectedCell];
+        if (event) return event;
+        const mainCellKey = findMainEventCellKeyFor(selectedCell);
+        return mainCellKey ? schedule[mainCellKey] : undefined;
+    }
+
+    const cellKeyForDialog = () => {
+        if (!selectedCell) return null;
+        if (schedule[selectedCell]) return selectedCell;
+        return findMainEventCellKeyFor(selectedCell) || selectedCell;
+    }
+
     return (
-      <>
-        <div ref={ref} className="bg-card p-1 sm:p-2 md:p-4 rounded-lg shadow-lg overflow-x-auto">
+      <div onMouseUp={handleMouseUp} onMouseLeave={isSelecting ? handleMouseUp : undefined}>
+        <div ref={ref} className="bg-card p-1 sm:p-2 md:p-4 rounded-lg shadow-lg overflow-x-auto select-none">
           <div 
             className="grid" 
             style={{ 
@@ -65,7 +217,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
              {/* Heading Text */}
             <div className="bg-card sticky top-0 left-0 z-10"></div>
             <div 
-              className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky top-0 bg-card z-10 flex items-center justify-center"
+              className="text-center font-bold font-headline p-2 border-b-2 border-primary sticky top-0 bg-card z-10 flex items-center justify-center"
               style={{ gridColumn: `2 / span ${days.length}`}}
             >
               <Input
@@ -80,12 +232,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             <div className="sticky top-0 left-0 z-10 bg-card" style={{ top: '60px' }}></div>
             {days.map((day, dayIndex) => (
               <div key={day} className="text-center text-sm sm:text-base font-bold font-headline text-primary p-2 border-b-2 border-primary sticky bg-card z-10 flex items-center justify-center" style={{ top: '60px' }}>
-                <Input
-                  type="text"
-                  value={day}
-                  onChange={(e) => handleDayChange(dayIndex, e.target.value)}
-                  className="w-full h-9 bg-card border-none text-center text-sm sm:text-base font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
-                />
+                <div className="w-full h-9 bg-card border-none text-center text-sm sm:text-base font-bold font-headline text-primary p-0 flex items-center justify-center">{day}</div>
               </div>
             ))}
 
@@ -104,13 +251,28 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                   </Button>
                 </div>
                 {days.map(day => {
-                  const key = `${day}-${timeIndex}`;
+                  const key = getCellKey(day, timeIndex);
                   const event = schedule[key];
+
+                  if (isCellCovered(day, timeIndex)) {
+                      return null;
+                  }
+
                   return (
                     <div
                       key={key}
-                      className="border-r border-b p-1 cursor-pointer hover:bg-accent/20 transition-colors relative group"
-                      onClick={() => handleCellClick(day, timeIndex)}
+                      data-key={key}
+                      className={cn(
+                        "border-r border-b p-1 cursor-pointer transition-colors relative group",
+                        isSelecting ? 'cursor-cell' : 'cursor-pointer',
+                        selection.has(key) ? 'bg-accent/40' : 'hover:bg-accent/20'
+                        )}
+                      style={{
+                        gridRow: event?.rowSpan ? `span ${event.rowSpan}` : 'span 1',
+                        zIndex: event?.rowSpan ? 10 : 1
+                      }}
+                      onMouseDown={() => handleMouseDown(day, timeIndex)}
+                      onMouseEnter={() => handleMouseEnter(day, timeIndex)}
                     >
                       {event ? (
                         <div className={cn("h-full w-full rounded p-2 text-primary-foreground flex flex-col justify-center", event.color)}>
@@ -140,15 +302,16 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                 <div key={`add-slot-filler-${day}`} className="border-r border-b"></div>
             ))}
           </div>
+          {renderMergeButton()}
         </div>
         <EventDialog
           isOpen={!!selectedCell}
-          onClose={() => setSelectedCell(null)}
-          cellKey={selectedCell}
-          eventData={selectedCell ? schedule[selectedCell] : undefined}
+          onClose={() => { setSelectedCell(null); clearSelection(); }}
+          cellKey={cellKeyForDialog()}
+          eventData={eventForDialog()}
           onSave={handleSaveEvent}
         />
-      </>
+      </div>
     );
   }
 );

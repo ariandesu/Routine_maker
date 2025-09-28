@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
-  const [days, setDays] = useState<string[]>(initialDays);
+  const [days] = useState<string[]>(initialDays);
   const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
   const [headingText, setHeadingText] = useState<string>('My Weekly Schedule');
   const [isMounted, setIsMounted] = useState(false);
@@ -32,9 +32,6 @@ export default function TimetableWeaverClient() {
         if (decoded.schedule) {
           setSchedule(decoded.schedule);
         }
-        if (decoded.days) {
-          setDays(decoded.days);
-        }
         if (decoded.font) {
             setFont(decoded.font as any);
         }
@@ -47,7 +44,7 @@ export default function TimetableWeaverClient() {
         if (decoded.headingText) {
           setHeadingText(decoded.headingText);
         }
-        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.days || decoded.headingText) {
+        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.headingText) {
             toast({
                 title: "Shared Settings Loaded",
                 description: "A shared schedule and/or appearance settings have been loaded from the URL.",
@@ -66,7 +63,7 @@ export default function TimetableWeaverClient() {
     }
   }, [toast, setFont, setTheme]);
 
-  const handleUpdateEvent = (key: string, event: ScheduleEvent | null) => {
+  const handleUpdateEvent = (key: string, event: ScheduleEvent | null, keysToRemove: string[] = []) => {
     setSchedule(prev => {
       const newSchedule = { ...prev };
       if (event) {
@@ -74,30 +71,9 @@ export default function TimetableWeaverClient() {
       } else {
         delete newSchedule[key];
       }
+      keysToRemove.forEach(k => delete newSchedule[k]);
       return newSchedule;
     });
-  };
-
-  const handleDaysChange = (newDays: string[]) => {
-    const oldDays = days;
-    const dayMap = new Map(oldDays.map((oldDay, i) => [oldDay, newDays[i]]));
-    
-    setSchedule(prevSchedule => {
-      const newSchedule: ScheduleData = {};
-      Object.keys(prevSchedule).forEach(key => {
-        const [day, timeIndex] = key.split('-');
-        const newDay = dayMap.get(day);
-        if (newDay && newDay !== day) {
-          const newKey = `${newDay}-${timeIndex}`;
-          newSchedule[newKey] = prevSchedule[key];
-        } else {
-          newSchedule[key] = prevSchedule[key];
-        }
-      });
-      return newSchedule;
-    });
-
-    setDays(newDays);
   };
 
   const handleShare = () => {
@@ -194,7 +170,6 @@ export default function TimetableWeaverClient() {
                   <ScheduleGrid 
                   ref={printableRef}
                   days={days}
-                  onDaysChange={handleDaysChange}
                   timeSlots={timeSlots}
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}

@@ -72,11 +72,16 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
 
   const onSubmit = (data: EventFormValues) => {
     if (cellKey) {
-      onSave(cellKey, {
+      const newEvent: ScheduleEvent = {
         title: data.title,
         subtitle: data.subtitle || '',
         color: data.color,
-      });
+      };
+      // Preserve rowspan if it exists
+      if (eventData?.rowSpan) {
+        newEvent.rowSpan = eventData.rowSpan;
+      }
+      onSave(cellKey, newEvent);
     }
   };
 
