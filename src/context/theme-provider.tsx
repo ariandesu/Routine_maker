@@ -1,10 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 
-type Theme = 'theme-indigo' | 'theme-rose' | 'theme-forest';
-type Font = 'font-body' | 'font-roboto' | 'font-lato' | 'font-merriweather';
+type Theme = string;
+type Font = string;
 
 interface ThemeContextType {
   theme: Theme;
@@ -47,7 +46,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   };
   
   if (!isMounted) {
-    return null; // Or a loading spinner
+    return null;
   }
 
   return (
@@ -64,13 +63,3 @@ export const useTheme = () => {
   }
   return context;
 };
-
-export const ThemeWrapper = ({ children }: { children: ReactNode }) => {
-    const { theme, font } = useTheme();
-    
-    return (
-        <div className={cn(theme, font)}>
-            {children}
-        </div>
-    )
-}

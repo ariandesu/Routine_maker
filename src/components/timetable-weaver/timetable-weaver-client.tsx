@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/context/theme-provider';
+import { cn } from '@/lib/utils';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -17,7 +18,7 @@ export default function TimetableWeaverClient() {
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { setFont, setTheme } = useTheme();
+  const { font, setFont, theme, setTheme } = useTheme();
 
   useEffect(() => {
     try {
@@ -29,10 +30,10 @@ export default function TimetableWeaverClient() {
           setSchedule(decoded.schedule);
         }
         if (decoded.font) {
-            setFont(decoded.font);
+            setFont(decoded.font as any);
         }
         if (decoded.theme) {
-            setTheme(decoded.theme);
+            setTheme(decoded.theme as any);
         }
         if(decoded.schedule || decoded.font || decoded.theme) {
             toast({
@@ -135,35 +136,37 @@ export default function TimetableWeaverClient() {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
-        <ControlPanel 
-          onShare={handleShare}
-          onImport={handleImport}
-          onExport={handleExport}
-          />
-      </Sidebar>
-      <SidebarInset>
-        <div className="p-4 md:p-8">
-            <header className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <SidebarTrigger className="hidden md:flex" />
-                   <div>
-                      <h1 className="text-4xl font-bold font-headline text-primary">Timetable Weaver</h1>
-                      <p className="text-muted-foreground">Craft your perfect schedule with ease.</p>
-                   </div>
-                </div>
-                <SidebarTrigger className="flex md:hidden" />
-            </header>
-            <ScheduleGrid 
-              ref={printableRef}
-              days={days}
-              timeSlots={timeSlots}
-              schedule={schedule}
-              onUpdateEvent={handleUpdateEvent}
+    <div className={cn(theme)}>
+        <SidebarProvider>
+        <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
+            <ControlPanel 
+            onShare={handleShare}
+            onImport={handleImport}
+            onExport={handleExport}
             />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </Sidebar>
+        <SidebarInset>
+            <div className={cn("p-4 md:p-8", font)}>
+                <header className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                    <SidebarTrigger className="hidden md:flex" />
+                    <div>
+                        <h1 className="text-4xl font-bold font-headline text-primary">Timetable Weaver</h1>
+                        <p className="text-muted-foreground">Craft your perfect schedule with ease.</p>
+                    </div>
+                    </div>
+                    <SidebarTrigger className="flex md:hidden" />
+                </header>
+                <ScheduleGrid 
+                ref={printableRef}
+                days={days}
+                timeSlots={timeSlots}
+                schedule={schedule}
+                onUpdateEvent={handleUpdateEvent}
+                />
+            </div>
+        </SidebarInset>
+        </SidebarProvider>
+    </div>
   );
 }
