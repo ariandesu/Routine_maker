@@ -26,24 +26,43 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { CalendarDays, FileDown, FileUp, Share2, Palette } from "lucide-react";
+import { CalendarDays, FileDown, FileUp, Share2, Palette, Clock, Plus, Trash2 } from "lucide-react";
 import { Label } from '../ui/label';
 import { useTheme } from '@/context/theme-provider';
 import { fonts, themes } from './data';
+import { Input } from '../ui/input';
 
 interface ControlPanelProps {
   onShare: () => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onExport: (format: 'PNG' | 'JPG' | 'PDF') => void;
+  timeSlots: string[];
+  onTimeSlotsChange: (newTimeSlots: string[]) => void;
 }
 
-export function ControlPanel({ onShare, onImport, onExport }: ControlPanelProps) {
+export function ControlPanel({ onShare, onImport, onExport, timeSlots, onTimeSlotsChange }: ControlPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { font, setFont, theme, setTheme } = useTheme();
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleTimeSlotChange = (index: number, value: string) => {
+    const newTimeSlots = [...timeSlots];
+    newTimeSlots[index] = value;
+    onTimeSlotsChange(newTimeSlots);
+  };
+
+  const addTimeSlot = () => {
+    onTimeSlotsChange([...timeSlots, `New Slot ${timeSlots.length + 1}`]);
+  };
+
+  const removeTimeSlot = (index: number) => {
+    const newTimeSlots = timeSlots.filter((_, i) => i !== index);
+    onTimeSlotsChange(newTimeSlots);
+  };
+
 
   return (
     <>
@@ -90,6 +109,34 @@ export function ControlPanel({ onShare, onImport, onExport }: ControlPanelProps)
                     </SelectContent>
                   </Select>
                 </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="time-settings">
+              <AccordionTrigger>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Time Slots</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-2 p-1">
+                <div className="space-y-2">
+                  {timeSlots.map((slot, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={slot}
+                        onChange={(e) => handleTimeSlotChange(index, e.target.value)}
+                        className="h-9"
+                      />
+                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => removeTimeSlot(index)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="outline" className="w-full justify-start" onClick={addTimeSlot}>
+                  <Plus className="mr-2 h-4 w-4" /> Add Time Slot
+                </Button>
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="actions">

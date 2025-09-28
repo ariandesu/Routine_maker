@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { ControlPanel } from '@/components/timetable-weaver/control-panel';
 import { ScheduleGrid } from '@/components/timetable-weaver/schedule-grid';
-import { initialScheduleData, days, timeSlots } from '@/components/timetable-weaver/data';
+import { initialScheduleData, days, initialTimeSlots } from '@/components/timetable-weaver/data';
 import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
+  const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
@@ -35,7 +36,10 @@ export default function TimetableWeaverClient() {
         if (decoded.theme) {
             setTheme(decoded.theme as any);
         }
-        if(decoded.schedule || decoded.font || decoded.theme) {
+        if (decoded.timeSlots) {
+            setTimeSlots(decoded.timeSlots);
+        }
+        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots) {
             toast({
                 title: "Shared Settings Loaded",
                 description: "A shared schedule and/or appearance settings have been loaded from the URL.",
@@ -72,7 +76,7 @@ export default function TimetableWeaverClient() {
           font: localStorage.getItem('timetable-font') || 'font-body',
           theme: localStorage.getItem('timetable-theme') || 'theme-indigo',
       }
-      const data = { schedule, ...themeData };
+      const data = { schedule, timeSlots, ...themeData };
       const base64 = btoa(JSON.stringify(data));
       const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
       navigator.clipboard.writeText(url);
@@ -140,9 +144,11 @@ export default function TimetableWeaverClient() {
         <SidebarProvider>
         <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
             <ControlPanel 
-            onShare={handleShare}
-            onImport={handleImport}
-            onExport={handleExport}
+              onShare={handleShare}
+              onImport={handleImport}
+              onExport={handleExport}
+              timeSlots={timeSlots}
+              onTimeSlotsChange={setTimeSlots}
             />
         </Sidebar>
         <SidebarInset>
