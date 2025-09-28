@@ -72,87 +72,8 @@ export default function TimetableWeaverClient() {
       if (event) {
         newSchedule[key] = event;
       } else {
-        const oldEvent = prev[key];
-        if (oldEvent && oldEvent.rowspan && oldEvent.rowspan > 1) {
-          // This was a merged event, splitting it.
-          delete oldEvent.rowspan;
-        }
         delete newSchedule[key];
       }
-      return newSchedule;
-    });
-  };
-
-  const handleMergeDown = (key: string) => {
-    setSchedule(prev => {
-      const newSchedule = { ...prev };
-      const eventToMerge = newSchedule[key];
-      if (!eventToMerge) return prev;
-  
-      const [day, timeIndexStr] = key.split('-');
-      const timeIndex = parseInt(timeIndexStr, 10);
-      const currentSpan = eventToMerge.rowspan || 1;
-      const nextCellIndex = timeIndex + currentSpan;
-      const nextCellKey = `${day}-${nextCellIndex}`;
-      const eventToCover = newSchedule[nextCellKey];
-      const coveredSpan = eventToCover?.rowspan || 1;
-  
-      eventToMerge.rowspan = currentSpan + coveredSpan;
-
-      if(eventToCover) {
-        delete newSchedule[nextCellKey];
-      }
-  
-      return newSchedule;
-    });
-  };
-  
-  const handleMergeUp = (key: string) => {
-    setSchedule(prev => {
-      const newSchedule = { ...prev };
-      const eventToMerge = newSchedule[key];
-      if (!eventToMerge) return prev;
-  
-      const [day, timeIndexStr] = key.split('-');
-      const timeIndex = parseInt(timeIndexStr, 10);
-      if (timeIndex === 0) return prev;
-
-      let parentIndex = -1;
-      let parentKey = '';
-
-      for (let i = 1; i <= timeIndex; i++) {
-        const potentialParentKey = `${day}-${timeIndex - i}`;
-        const potentialParentEvent = newSchedule[potentialParentKey];
-        if(potentialParentEvent) {
-          if ((potentialParentEvent.rowspan || 1) >= i) {
-             parentIndex = timeIndex - i;
-             parentKey = potentialParentKey;
-          }
-          break;
-        }
-      }
-
-      if (parentIndex === -1) return prev;
-      
-      const parentEvent = newSchedule[parentKey];
-      const currentSpan = parentEvent.rowspan || 1;
-      const mergingSpan = eventToMerge.rowspan || 1;
-
-      parentEvent.rowspan = currentSpan + mergingSpan;
-      delete newSchedule[key];
-  
-      return newSchedule;
-    });
-  };
-
-  const handleSplit = (key: string) => {
-    setSchedule(prev => {
-      const newSchedule = { ...prev };
-      const eventToSplit = newSchedule[key];
-      if (!eventToSplit || !eventToSplit.rowspan || eventToSplit.rowspan <= 1) return prev;
-  
-      delete eventToSplit.rowspan;
-      
       return newSchedule;
     });
   };
@@ -278,9 +199,6 @@ export default function TimetableWeaverClient() {
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
                   onUpdateEvent={handleUpdateEvent}
-                  onMergeDown={handleMergeDown}
-                  onMergeUp={handleMergeUp}
-                  onSplit={handleSplit}
                   headingText={headingText}
                   onHeadingTextChange={setHeadingText}
                   />
