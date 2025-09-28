@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 interface ScheduleGridProps {
   days: string[];
+  onDaysChange: (oldDay: string, newDay: string) => void;
   timeSlots: string[];
   onTimeSlotsChange: (newTimeSlots: string[]) => void;
   schedule: ScheduleData;
@@ -16,7 +17,7 @@ interface ScheduleGridProps {
 }
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent }, ref) => {
+  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
 
     const handleCellClick = (day: string, timeIndex: number) => {
@@ -43,6 +44,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
       onTimeSlotsChange(newTimeSlots);
     };
 
+    const handleDayChange = (index: number, newName: string) => {
+      const oldName = days[index];
+      if (oldName !== newName) {
+        onDaysChange(oldName, newName);
+      }
+    };
+
     return (
       <>
         <div ref={ref} className="bg-card p-2 sm:p-4 rounded-lg shadow-lg overflow-x-auto">
@@ -55,9 +63,14 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
           >
             {/* Header: Days */}
             <div className="sticky top-0 left-0 z-10 bg-card"></div>
-            {days.map(day => (
+            {days.map((day, dayIndex) => (
               <div key={day} className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky top-0 bg-card z-10">
-                {day}
+                <Input
+                  type="text"
+                  value={day}
+                  onChange={(e) => handleDayChange(dayIndex, e.target.value)}
+                  className="h-9 w-full bg-card border-none text-center focus-visible:ring-1 focus-visible:ring-ring font-bold font-headline text-primary"
+                />
               </div>
             ))}
 

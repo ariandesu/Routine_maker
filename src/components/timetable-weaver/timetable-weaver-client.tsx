@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { ControlPanel } from '@/components/timetable-weaver/control-panel';
 import { ScheduleGrid } from '@/components/timetable-weaver/schedule-grid';
-import { initialScheduleData, days, initialTimeSlots } from '@/components/timetable-weaver/data';
+import { initialScheduleData, initialDays, initialTimeSlots } from '@/components/timetable-weaver/data';
 import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
+  const [days, setDays] = useState<string[]>(initialDays);
   const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
@@ -30,6 +31,9 @@ export default function TimetableWeaverClient() {
         if (decoded.schedule) {
           setSchedule(decoded.schedule);
         }
+        if (decoded.days) {
+          setDays(decoded.days);
+        }
         if (decoded.font) {
             setFont(decoded.font as any);
         }
@@ -39,7 +43,7 @@ export default function TimetableWeaverClient() {
         if (decoded.timeSlots) {
             setTimeSlots(decoded.timeSlots);
         }
-        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots) {
+        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.days) {
             toast({
                 title: "Shared Settings Loaded",
                 description: "A shared schedule and/or appearance settings have been loaded from the URL.",
@@ -76,7 +80,7 @@ export default function TimetableWeaverClient() {
           font: localStorage.getItem('timetable-font') || 'font-body',
           theme: localStorage.getItem('timetable-theme') || 'theme-indigo',
       }
-      const data = { schedule, timeSlots, ...themeData };
+      const data = { schedule, days, timeSlots, ...themeData };
       const base64 = btoa(JSON.stringify(data));
       const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
       navigator.clipboard.writeText(url);
@@ -125,6 +129,30 @@ export default function TimetableWeaverClient() {
     });
   };
 
+  const handleDaysChange = (oldDay: string, newDay: string) => {
+    setDays(currentDays => {
+      const dayIndex = currentDays.indexOf(oldDay);
+      if (dayIndex === -1) return currentDays;
+      const newDays = [...currentDays];
+      newDays[dayIndex] = newDay;
+      return newDays;
+    });
+  
+    setSchedule(currentSchedule => {
+      const newSchedule: ScheduleData = {};
+      Object.keys(currentSchedule).forEach(key => {
+        const [day, timeIndex] = key.split('-');
+        if (day === oldDay) {
+          const newKey = `${newDay}-${timeIndex}`;
+          newSchedule[newKey] = currentSchedule[key];
+        } else {
+          newSchedule[key] = currentSchedule[key];
+        }
+      });
+      return newSchedule;
+    });
+  };
+
   if (!isMounted) {
     return (
        <div className="p-4 md:p-8">
@@ -165,6 +193,7 @@ export default function TimetableWeaverClient() {
                   <ScheduleGrid 
                   ref={printableRef}
                   days={days}
+                  onDaysChange={handleDaysChange}
                   timeSlots={timeSlots}
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
