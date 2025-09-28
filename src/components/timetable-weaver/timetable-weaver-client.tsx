@@ -158,13 +158,13 @@ export default function TimetableWeaverClient() {
             />
         </Sidebar>
         <SidebarInset>
-            <div className="p-4 md:p-8">
-                <header className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
+            <div className="p-2 sm:p-4 md:p-8">
+                <header className="flex items-center justify-between mb-6 md:mb-8">
+                    <div className="flex items-center gap-2 sm:gap-4">
                     <SidebarTrigger />
                     <div>
-                        <h1 className="text-4xl font-bold font-headline text-primary">Timetable Weaver</h1>
-                        <p className="text-muted-foreground">Craft your perfect schedule with ease.</p>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Timetable Weaver</h1>
+                        <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                     </div>
                     </div>
                 </header>

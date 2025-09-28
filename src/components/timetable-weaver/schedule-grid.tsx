@@ -47,12 +47,12 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
 
     return (
       <>
-        <div ref={ref} className="bg-card p-2 sm:p-4 rounded-lg shadow-lg overflow-x-auto">
+        <div ref={ref} className="bg-card p-1 sm:p-2 md:p-4 rounded-lg shadow-lg overflow-x-auto">
           <div 
             className="grid" 
             style={{ 
-              gridTemplateColumns: `minmax(150px, auto) repeat(${days.length}, minmax(120px, 1fr))`,
-              gridTemplateRows: `auto auto repeat(${timeSlots.length}, minmax(80px, 1fr)) auto`
+              gridTemplateColumns: `minmax(100px, 0.7fr) repeat(${days.length}, minmax(100px, 1fr))`,
+              gridTemplateRows: `auto auto repeat(${timeSlots.length}, minmax(70px, 1fr)) auto`
             }}
           >
              {/* Heading Text */}
@@ -66,13 +66,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                 value={headingText}
                 onChange={(e) => onHeadingTextChange(e.target.value)}
                 placeholder="Schedule Title"
-                className="w-full h-10 bg-card border-none text-center text-2xl font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
+                className="w-full h-10 bg-card border-none text-center text-xl sm:text-2xl font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
               />
             </div>
             {/* Header: Days */}
             <div className="sticky top-0 left-0 z-10 bg-card" style={{ top: '60px' }}></div>
             {days.map((day) => (
-              <div key={day} className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky bg-card z-10 flex items-center justify-center" style={{ top: '60px' }}>
+              <div key={day} className="text-center text-sm sm:text-base font-bold font-headline text-primary p-2 border-b-2 border-primary sticky bg-card z-10 flex items-center justify-center" style={{ top: '60px' }}>
                 {day}
               </div>
             ))}
@@ -80,14 +80,14 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             {/* Time slots and Cells */}
             {timeSlots.map((time, timeIndex) => (
               <React.Fragment key={timeIndex}>
-                <div className="p-2 text-right text-xs sm:text-sm font-semibold text-muted-foreground border-r sticky left-0 bg-card flex items-center justify-end gap-2 group">
+                <div className="p-1 text-right text-xs sm:text-sm font-semibold text-muted-foreground border-r sticky left-0 bg-card flex items-center justify-end gap-1 sm:gap-2 group">
                   <Input
                     type="text"
                     value={time}
                     onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
-                    className="h-9 w-full bg-card border-none text-right focus-visible:ring-1 focus-visible:ring-ring"
+                    className="h-9 w-full bg-card border-none text-right text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
                   />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => removeTimeSlot(timeIndex)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100" onClick={() => removeTimeSlot(timeIndex)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -102,7 +102,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                     >
                       {event ? (
                         <div className={cn("h-full w-full rounded p-2 text-primary-foreground flex flex-col justify-center", event.color)}>
-                           <p className="font-bold text-sm leading-tight">{event.title}</p>
+                           <p className="font-bold text-xs sm:text-sm leading-tight">{event.title}</p>
                            <p className="text-xs opacity-80 mt-1">{event.subtitle}</p>
                         </div>
                       ) : (
@@ -118,7 +118,9 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
              {/* Add Time Slot Button */}
             <div className="p-2 border-r sticky left-0 bg-card flex items-center justify-center">
                 <Button variant="outline" className="w-full h-9" onClick={addTimeSlot}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Slot
+                    <Plus className="mr-2 h-4 w-4" /> 
+                    <span className="sm:hidden">Add</span>
+                    <span className="hidden sm:inline">Add Slot</span>
                 </Button>
             </div>
             {/* Empty cells for the add button row */}
