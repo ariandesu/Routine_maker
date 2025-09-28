@@ -16,6 +16,7 @@ export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
   const [days, setDays] = useState<string[]>(initialDays);
   const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
+  const [headingText, setHeadingText] = useState<string>('My Weekly Schedule');
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
@@ -43,7 +44,10 @@ export default function TimetableWeaverClient() {
         if (decoded.timeSlots) {
             setTimeSlots(decoded.timeSlots);
         }
-        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.days) {
+        if (decoded.headingText) {
+          setHeadingText(decoded.headingText);
+        }
+        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.days || decoded.headingText) {
             toast({
                 title: "Shared Settings Loaded",
                 description: "A shared schedule and/or appearance settings have been loaded from the URL.",
@@ -80,7 +84,7 @@ export default function TimetableWeaverClient() {
           font: localStorage.getItem('timetable-font') || 'font-body',
           theme: localStorage.getItem('timetable-theme') || 'theme-indigo',
       }
-      const data = { schedule, days, timeSlots, ...themeData };
+      const data = { schedule, days, timeSlots, headingText, ...themeData };
       const base64 = btoa(JSON.stringify(data));
       const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
       navigator.clipboard.writeText(url);
@@ -173,6 +177,8 @@ export default function TimetableWeaverClient() {
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
                   onUpdateEvent={handleUpdateEvent}
+                  headingText={headingText}
+                  onHeadingTextChange={setHeadingText}
                   />
                 </div>
             </div>

@@ -13,10 +13,12 @@ interface ScheduleGridProps {
   onTimeSlotsChange: (newTimeSlots: string[]) => void;
   schedule: ScheduleData;
   onUpdateEvent: (key: string, event: ScheduleEvent | null) => void;
+  headingText: string;
+  onHeadingTextChange: (text: string) => void;
 }
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent }, ref) => {
+  ({ days, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, headingText, onHeadingTextChange }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
 
     const handleCellClick = (day: string, timeIndex: number) => {
@@ -50,13 +52,27 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(150px, auto) repeat(${days.length}, minmax(120px, 1fr))`,
-              gridTemplateRows: `auto repeat(${timeSlots.length}, minmax(80px, 1fr)) auto`
+              gridTemplateRows: `auto auto repeat(${timeSlots.length}, minmax(80px, 1fr)) auto`
             }}
           >
+             {/* Heading Text */}
+            <div className="bg-card sticky top-0 left-0 z-10"></div>
+            <div 
+              className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky top-0 bg-card z-10 flex items-center justify-center"
+              style={{ gridColumn: `2 / span ${days.length}`}}
+            >
+              <Input
+                type="text"
+                value={headingText}
+                onChange={(e) => onHeadingTextChange(e.target.value)}
+                placeholder="Schedule Title"
+                className="w-full h-10 bg-card border-none text-center text-2xl font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
+              />
+            </div>
             {/* Header: Days */}
-            <div className="sticky top-0 left-0 z-10 bg-card"></div>
+            <div className="sticky top-0 left-0 z-10 bg-card" style={{ top: '60px' }}></div>
             {days.map((day) => (
-              <div key={day} className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky top-0 bg-card z-10 flex items-center justify-center">
+              <div key={day} className="text-center font-bold font-headline text-primary p-2 border-b-2 border-primary sticky bg-card z-10 flex items-center justify-center" style={{ top: '60px' }}>
                 {day}
               </div>
             ))}
