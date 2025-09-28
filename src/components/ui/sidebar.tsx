@@ -175,7 +175,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, open, openMobile, setOpenMobile } = useSidebar()
 
     if (collapsible === "none") {
       return (
@@ -224,24 +224,26 @@ const Sidebar = React.forwardRef<
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
+            "duration-200 relative h-svh bg-transparent transition-[width] ease-linear",
+            open ? "w-[--sidebar-width]" : "w-0",
+            collapsible === "icon" && !open ? "w-[--sidebar-width-icon]" : "w-[--sidebar-width]",
+            variant === "floating" || variant === "inset" ? (open ? "w-[calc(var(--sidebar-width)_+_theme(spacing.4))]" : (collapsible === "icon" ? "w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]" : "w-0")) : "",
+            className
           )}
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+            "duration-200 fixed inset-y-0 z-10 hidden h-svh transition-[left,right,width] ease-linear md:flex",
+            open ? "w-[--sidebar-width]" : "w-0",
+            side === "left" ? (open ? "left-0" : "left-[calc(var(--sidebar-width)*-1)]") : (open ? "right-0" : "right-[calc(var(--sidebar-width)*-1)]"),
+            
             // Adjust the padding for floating and inset variants.
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+            variant === "floating" || variant === "inset" ? "p-2" : (side === "left" ? "border-r" : "border-l"),
+            
+            collapsible === 'icon' && !open && 'w-[var(--sidebar-width-icon)]',
+            collapsible === 'icon' && !open && (side === 'left' ? 'left-0' : 'right-0'),
+            variant === "floating" || variant === "inset" && collapsible === 'icon' && !open ? "w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]" : "",
+
             className
           )}
           {...props}

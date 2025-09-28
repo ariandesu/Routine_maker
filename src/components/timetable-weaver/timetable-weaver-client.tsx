@@ -150,7 +150,7 @@ export default function TimetableWeaverClient() {
   return (
     <div className={cn(theme)}>
         <SidebarProvider>
-        <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
+        <Sidebar collapsible="offcanvas">
             <ControlPanel 
               onShare={handleShare}
               onImport={handleImport}
@@ -161,13 +161,12 @@ export default function TimetableWeaverClient() {
             <div className="p-4 md:p-8">
                 <header className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
-                    <SidebarTrigger className="hidden md:flex" />
+                    <SidebarTrigger />
                     <div>
                         <h1 className="text-4xl font-bold font-headline text-primary">Timetable Weaver</h1>
                         <p className="text-muted-foreground">Craft your perfect schedule with ease.</p>
                     </div>
                     </div>
-                    <SidebarTrigger className="flex md:hidden" />
                 </header>
                 <div className={cn(font)}>
                   <ScheduleGrid 
