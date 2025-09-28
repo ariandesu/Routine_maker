@@ -147,12 +147,10 @@ export default function TimetableWeaverClient() {
               onShare={handleShare}
               onImport={handleImport}
               onExport={handleExport}
-              timeSlots={timeSlots}
-              onTimeSlotsChange={setTimeSlots}
             />
         </Sidebar>
         <SidebarInset>
-            <div className={cn("p-4 md:p-8", font)}>
+            <div className="p-4 md:p-8">
                 <header className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                     <SidebarTrigger className="hidden md:flex" />
@@ -163,13 +161,16 @@ export default function TimetableWeaverClient() {
                     </div>
                     <SidebarTrigger className="flex md:hidden" />
                 </header>
-                <ScheduleGrid 
-                ref={printableRef}
-                days={days}
-                timeSlots={timeSlots}
-                schedule={schedule}
-                onUpdateEvent={handleUpdateEvent}
-                />
+                <div className={cn(font)}>
+                  <ScheduleGrid 
+                  ref={printableRef}
+                  days={days}
+                  timeSlots={timeSlots}
+                  onTimeSlotsChange={setTimeSlots}
+                  schedule={schedule}
+                  onUpdateEvent={handleUpdateEvent}
+                  />
+                </div>
             </div>
         </SidebarInset>
         </SidebarProvider>
