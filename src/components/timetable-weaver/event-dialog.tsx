@@ -54,21 +54,23 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
     },
   });
 
+  const { reset } = form;
+
   useEffect(() => {
     if (eventData) {
-      form.reset({
+      reset({
         title: eventData.title,
         subtitle: eventData.subtitle,
         color: eventData.color,
       });
     } else {
-      form.reset({
+      reset({
         title: '',
         subtitle: '',
         color: eventColors[0].value,
       });
     }
-  }, [eventData, form]);
+  }, [eventData, reset]);
 
   const onSubmit = (data: EventFormValues) => {
     if (cellKey) {
