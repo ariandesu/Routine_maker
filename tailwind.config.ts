@@ -13,6 +13,9 @@ export default {
         body: ['Alegreya', 'serif'],
         headline: ['Alegreya', 'serif'],
         code: ['monospace'],
+        roboto: ['Roboto', 'sans-serif'],
+        lato: ['Lato', 'sans-serif'],
+        merriweather: ['Merriweather', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

@@ -9,6 +9,7 @@ import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/context/theme-provider';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -16,6 +17,7 @@ export default function TimetableWeaverClient() {
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { setFont, setTheme } = useTheme();
 
   useEffect(() => {
     try {
@@ -25,23 +27,31 @@ export default function TimetableWeaverClient() {
         const decoded = JSON.parse(atob(data));
         if (decoded.schedule) {
           setSchedule(decoded.schedule);
-          toast({
-            title: "Schedule Loaded",
-            description: "A shared schedule has been loaded from the URL.",
-          });
+        }
+        if (decoded.font) {
+            setFont(decoded.font);
+        }
+        if (decoded.theme) {
+            setTheme(decoded.theme);
+        }
+        if(decoded.schedule || decoded.font || decoded.theme) {
+            toast({
+                title: "Shared Settings Loaded",
+                description: "A shared schedule and/or appearance settings have been loaded from the URL.",
+            });
         }
       }
     } catch (error) {
-      console.error("Failed to parse schedule data from URL", error);
+      console.error("Failed to parse data from URL", error);
        toast({
         variant: "destructive",
-        title: "Error loading schedule",
-        description: "Could not load the shared schedule from the URL.",
+        title: "Error loading settings",
+        description: "Could not load the shared settings from the URL.",
       });
     } finally {
       setIsMounted(true);
     }
-  }, [toast]);
+  }, [toast, setFont, setTheme]);
 
   const handleUpdateEvent = (key: string, event: ScheduleEvent | null) => {
     setSchedule(prev => {
@@ -57,11 +67,15 @@ export default function TimetableWeaverClient() {
 
   const handleShare = () => {
     try {
-      const data = { schedule };
+      const themeData = {
+          font: localStorage.getItem('timetable-font') || 'font-body',
+          theme: localStorage.getItem('timetable-theme') || 'theme-indigo',
+      }
+      const data = { schedule, ...themeData };
       const base64 = btoa(JSON.stringify(data));
       const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
       navigator.clipboard.writeText(url);
-      toast({ title: "Link Copied!", description: "Schedule link copied to clipboard." });
+      toast({ title: "Link Copied!", description: "Schedule and appearance settings link copied to clipboard." });
     } catch (error) {
       console.error("Failed to create share link", error);
       toast({

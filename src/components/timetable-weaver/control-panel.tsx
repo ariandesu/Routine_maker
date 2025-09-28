@@ -14,6 +14,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -21,6 +28,8 @@ import {
 } from "@/components/ui/accordion";
 import { CalendarDays, FileDown, FileUp, Share2, Palette } from "lucide-react";
 import { Label } from '../ui/label';
+import { useTheme } from '@/context/theme-provider';
+import { fonts, themes } from './data';
 
 interface ControlPanelProps {
   onShare: () => void;
@@ -30,6 +39,7 @@ interface ControlPanelProps {
 
 export function ControlPanel({ onShare, onImport, onExport }: ControlPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { font, setFont, theme, setTheme } = useTheme();
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -56,13 +66,29 @@ export function ControlPanel({ onShare, onImport, onExport }: ControlPanelProps)
               <AccordionContent className="space-y-4 p-1">
                 <div className='space-y-2'>
                   <Label>Font Family</Label>
-                  <Button variant="outline" className="w-full" disabled>Alegreya</Button>
-                  <p className="text-xs text-muted-foreground">Font customization is coming soon.</p>
+                  <Select onValueChange={setFont} defaultValue={font}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fonts.map((f) => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                  <div className='space-y-2'>
                   <Label>Color Palette</Label>
-                  <Button variant="outline" className="w-full" disabled>Indigo & Gold</Button>
-                  <p className="text-xs text-muted-foreground">Color customization is coming soon.</p>
+                  <Select onValueChange={setTheme} defaultValue={theme}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {themes.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </AccordionContent>
             </AccordionItem>

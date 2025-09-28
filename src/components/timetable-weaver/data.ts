@@ -34,3 +34,16 @@ export const eventColors = [
     { label: "Orange", value: "bg-orange-300" },
     { label: "Red", value: "bg-red-300" },
 ];
+
+export const fonts = [
+    { label: 'Alegreya', value: 'font-body' },
+    { label: 'Roboto', value: 'font-roboto' },
+    { label: 'Lato', value: 'font-lato' },
+    { label: 'Merriweather', value: 'font-merriweather' },
+];
+
+export const themes = [
+    { label: 'Indigo & Gold', value: 'theme-indigo' },
+    { label: 'Rose Tint', value: 'theme-rose' },
+    { label: 'Forest Green', value: 'theme-forest' },
+];

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, .theme-indigo {
     --background: 240 5% 90%;
     --foreground: 272 100% 10%;
     --card: 240 5% 98%;
@@ -38,7 +38,8 @@
     --sidebar-border: 240 5% 80%;
     --sidebar-ring: 45 65% 52%;
   }
-  .dark {
+
+  .dark:root, .dark.theme-indigo {
     --background: 272 100% 5%;
     --foreground: 0 0% 98%;
     --card: 272 100% 8%;
@@ -71,6 +72,62 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 272 100% 15%;
     --sidebar-ring: 45 65% 52%;
+  }
+
+  .theme-rose {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --accent: 346.8 77.2% 49.8%;
+    --border: 0 0% 93.9%;
+    --ring: 346.8 77.2% 49.8%;
+    --sidebar-background: 0 0% 96%;
+    --sidebar-primary: 346.8 77.2% 49.8%;
+    --sidebar-accent: 0 0% 90%;
+  }
+
+  .dark.theme-rose {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 14.9%;
+    --accent: 346.8 77.2% 49.8%;
+    --border: 0 0% 14.9%;
+    --ring: 346.8 77.2% 49.8%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-primary: 346.8 77.2% 49.8%;
+    --sidebar-accent: 0 0% 12%;
+  }
+
+  .theme-forest {
+    --background: 140 10% 96%;
+    --foreground: 140 10% 10%;
+    --primary: 150 70% 30%;
+    --primary-foreground: 150 10% 98%;
+    --secondary: 140 10% 90%;
+    --accent: 150 80% 40%;
+    --border: 140 10% 85%;
+    --ring: 150 80% 40%;
+    --sidebar-background: 140 10% 94%;
+    --sidebar-primary: 150 70% 30%;
+    --sidebar-accent: 140 10% 88%;
+  }
+
+  .dark.theme-forest {
+    --background: 150 15% 5%;
+    --foreground: 150 10% 95%;
+    --primary: 150 70% 35%;
+    --primary-foreground: 150 10% 98%;
+    --secondary: 150 15% 10%;
+    --accent: 150 80% 45%;
+    --border: 150 15% 15%;
+    --ring: 150 80% 45%;
+    --sidebar-background: 150 15% 8%;
+    --sidebar-primary: 150 70% 35%;
+    --sidebar-accent: 150 15% 12%;
   }
 }
 
