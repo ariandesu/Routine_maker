@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/context/theme-provider';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -124,11 +126,61 @@ export default function TimetableWeaverClient() {
     event.target.value = '';
   };
   
-  const handleExport = (format: 'PNG' | 'JPG' | 'PDF') => {
+  const handleExport = async (format: 'PNG' | 'JPG' | 'PDF') => {
+    if (!printableRef.current) {
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: "Could not find the schedule element to export.",
+      });
+      return;
+    }
+
     toast({
-      title: "Export not implemented",
-      description: `This is a demo. ${format} export functionality would be added here.`,
+      title: "Exporting...",
+      description: `Your schedule is being prepared as a ${format} file.`,
     });
+
+    try {
+      const canvas = await html2canvas(printableRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null, 
+      });
+
+      const cleanFileName = headingText.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${cleanFileName || 'schedule'}.${format.toLowerCase()}`;
+      
+      if (format === 'PDF') {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(fileName);
+      } else {
+        const image = canvas.toDataURL(`image/${format.toLowerCase()}`, 0.9);
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      toast({
+        title: "Export Successful!",
+        description: `Your schedule has been downloaded as a ${format} file.`,
+      });
+    } catch (error) {
+      console.error("Export failed", error);
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: "An unexpected error occurred during the export process.",
+      });
+    }
   };
 
   if (!isMounted) {
