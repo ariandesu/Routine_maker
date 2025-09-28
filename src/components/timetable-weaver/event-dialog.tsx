@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { eventColors } from './data';
 import type { ScheduleEvent } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ArrowDownToLine, ArrowUpToLine, Trash2 } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpToLine, Trash2, ArrowUpFromLine, ChevronsUpDown } from 'lucide-react';
 
 const eventSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }).max(50),
@@ -43,12 +43,14 @@ interface EventDialogProps {
   eventData?: ScheduleEvent;
   onSave: (key: string, event: ScheduleEvent | null) => void;
   onMergeDown: (key: string) => void;
+  onMergeUp: (key: string) => void;
   onSplit: (key: string) => void;
-  isMergeable: boolean;
+  isMergeableDown: boolean;
+  isMergeableUp: boolean;
   isSplittable: boolean;
 }
 
-export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, onMergeDown, onSplit, isMergeable, isSplittable }: EventDialogProps) {
+export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, onMergeDown, onMergeUp, onSplit, isMergeableDown, isMergeableUp, isSplittable }: EventDialogProps) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -91,9 +93,15 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, onMer
     }
   };
 
-  const handleMerge = () => {
+  const handleMergeDown = () => {
     if (cellKey) {
       onMergeDown(cellKey);
+    }
+  };
+
+  const handleMergeUp = () => {
+    if (cellKey) {
+      onMergeUp(cellKey);
     }
   };
   
@@ -178,12 +186,15 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, onMer
             <div className="flex gap-2 justify-start">
                 {eventData && (
                     <>
-                        <Button variant="destructive" size="icon" onClick={handleDelete}><Trash2 className="h-4 w-4" /></Button>
-                        {isMergeable && (
-                            <Button variant="outline" size="icon" onClick={handleMerge}><ArrowDownToLine className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" onClick={handleDelete} title="Delete Event"><Trash2 className="h-4 w-4" /></Button>
+                        {isMergeableUp && (
+                            <Button variant="outline" size="icon" onClick={handleMergeUp} title="Merge Up"><ArrowUpFromLine className="h-4 w-4" /></Button>
+                        )}
+                        {isMergeableDown && (
+                            <Button variant="outline" size="icon" onClick={handleMergeDown} title="Merge Down"><ArrowDownToLine className="h-4 w-4" /></Button>
                         )}
                         {isSplittable && (
-                           <Button variant="outline" size="icon" onClick={handleSplit}><ArrowUpToLine className="h-4 w-4" /></Button>
+                           <Button variant="outline" size="icon" onClick={handleSplit} title="Split Event"><ChevronsUpDown className="h-4 w-4" /></Button>
                         )}
                     </>
                 )}

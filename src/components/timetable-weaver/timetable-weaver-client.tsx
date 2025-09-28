@@ -72,16 +72,12 @@ export default function TimetableWeaverClient() {
       if (event) {
         newSchedule[key] = event;
       } else {
-        delete newSchedule[key];
-        // When deleting a merged event, we need to handle splitting
-        const [day, timeIndexStr] = key.split('-');
-        const timeIndex = parseInt(timeIndexStr, 10);
-        const deletedEvent = prev[key];
-        if (deletedEvent && deletedEvent.rowspan && deletedEvent.rowspan > 1) {
-          for (let i = 1; i < deletedEvent.rowspan; i++) {
-            delete newSchedule[`${day}-${timeIndex + i}`];
-          }
+        const oldEvent = prev[key];
+        if (oldEvent && oldEvent.rowspan && oldEvent.rowspan > 1) {
+          // This was a merged event, splitting it.
+          delete oldEvent.rowspan;
         }
+        delete newSchedule[key];
       }
       return newSchedule;
     });
@@ -110,6 +106,44 @@ export default function TimetableWeaverClient() {
       return newSchedule;
     });
   };
+  
+  const handleMergeUp = (key: string) => {
+    setSchedule(prev => {
+      const newSchedule = { ...prev };
+      const eventToMerge = newSchedule[key];
+      if (!eventToMerge) return prev;
+  
+      const [day, timeIndexStr] = key.split('-');
+      const timeIndex = parseInt(timeIndexStr, 10);
+      if (timeIndex === 0) return prev;
+
+      let parentIndex = -1;
+      let parentKey = '';
+
+      for (let i = 1; i <= timeIndex; i++) {
+        const potentialParentKey = `${day}-${timeIndex - i}`;
+        const potentialParentEvent = newSchedule[potentialParentKey];
+        if(potentialParentEvent) {
+          if ((potentialParentEvent.rowspan || 1) >= i) {
+             parentIndex = timeIndex - i;
+             parentKey = potentialParentKey;
+          }
+          break;
+        }
+      }
+
+      if (parentIndex === -1) return prev;
+      
+      const parentEvent = newSchedule[parentKey];
+      const currentSpan = parentEvent.rowspan || 1;
+      const mergingSpan = eventToMerge.rowspan || 1;
+
+      parentEvent.rowspan = currentSpan + mergingSpan;
+      delete newSchedule[key];
+  
+      return newSchedule;
+    });
+  };
 
   const handleSplit = (key: string) => {
     setSchedule(prev => {
@@ -121,6 +155,28 @@ export default function TimetableWeaverClient() {
       
       return newSchedule;
     });
+  };
+
+  const handleDaysChange = (newDays: string[]) => {
+    const oldDays = days;
+    const dayMap = new Map(oldDays.map((oldDay, i) => [oldDay, newDays[i]]));
+    
+    setSchedule(prevSchedule => {
+      const newSchedule: ScheduleData = {};
+      Object.keys(prevSchedule).forEach(key => {
+        const [day, timeIndex] = key.split('-');
+        const newDay = dayMap.get(day);
+        if (newDay && newDay !== day) {
+          const newKey = `${newDay}-${timeIndex}`;
+          newSchedule[newKey] = prevSchedule[key];
+        } else {
+          newSchedule[key] = prevSchedule[key];
+        }
+      });
+      return newSchedule;
+    });
+
+    setDays(newDays);
   };
 
   const handleShare = () => {
@@ -193,7 +249,7 @@ export default function TimetableWeaverClient() {
   }
 
   return (
-    <div className={cn(theme)}>
+    <div className={cn(theme, "min-h-svh")}>
         <SidebarProvider>
         <Sidebar collapsible="offcanvas">
             <ControlPanel 
@@ -217,11 +273,13 @@ export default function TimetableWeaverClient() {
                   <ScheduleGrid 
                   ref={printableRef}
                   days={days}
+                  onDaysChange={handleDaysChange}
                   timeSlots={timeSlots}
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
                   onUpdateEvent={handleUpdateEvent}
                   onMergeDown={handleMergeDown}
+                  onMergeUp={handleMergeUp}
                   onSplit={handleSplit}
                   headingText={headingText}
                   onHeadingTextChange={setHeadingText}

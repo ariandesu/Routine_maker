@@ -11,16 +11,18 @@ interface ScheduleGridProps {
   days: string[];
   timeSlots: string[];
   onTimeSlotsChange: (newTimeSlots: string[]) => void;
+  onDaysChange: (newDays: string[]) => void;
   schedule: ScheduleData;
   onUpdateEvent: (key: string, event: ScheduleEvent | null) => void;
   onMergeDown: (key: string) => void;
+  onMergeUp: (key: string) => void;
   onSplit: (key: string) => void;
   headingText: string;
   onHeadingTextChange: (text: string) => void;
 }
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, onMergeDown, onSplit, headingText, onHeadingTextChange }, ref) => {
+  ({ days, timeSlots, onTimeSlotsChange, onDaysChange, schedule, onUpdateEvent, onMergeDown, onMergeUp, onSplit, headingText, onHeadingTextChange }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
 
     const handleCellClick = (day: string, timeIndex: number) => {
@@ -32,8 +34,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
         setSelectedCell(null);
     }
 
-    const handleMerge = (key: string) => {
+    const handleMergeDown = (key: string) => {
       onMergeDown(key);
+      setSelectedCell(null);
+    }
+
+    const handleMergeUp = (key: string) => {
+      onMergeUp(key);
       setSelectedCell(null);
     }
   
@@ -47,6 +54,12 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
       newTimeSlots[index] = value;
       onTimeSlotsChange(newTimeSlots);
     };
+
+    const handleDayChange = (index: number, value: string) => {
+      const newDays = [...days];
+      newDays[index] = value;
+      onDaysChange(newDays);
+    };
   
     const addTimeSlot = () => {
       onTimeSlotsChange([...timeSlots, `New Slot ${timeSlots.length + 1}`]);
@@ -58,13 +71,11 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     };
 
     const isCellHidden = (day: string, timeIndex: number) => {
-      for (let i = 1; i < timeSlots.length; i++) {
-        if (timeIndex - i >= 0) {
-          const key = `${day}-${timeIndex - i}`;
-          const event = schedule[key];
-          if (event && event.rowspan && event.rowspan > i) {
-            return true;
-          }
+      for (let i = 1; i <= timeIndex; i++) {
+        const key = `${day}-${timeIndex - i}`;
+        const event = schedule[key];
+        if (event && event.rowspan && event.rowspan > i) {
+          return true;
         }
       }
       return false;
@@ -79,7 +90,40 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
       const rowspan = event.rowspan || 1;
       const nextTimeIndex = timeIndex + rowspan;
     
-      return nextTimeIndex < timeSlots.length;
+      if (nextTimeIndex >= timeSlots.length) return false;
+
+      // Check if the next cell is hidden by another rowspan
+      if (isCellHidden(day, nextTimeIndex)) return false;
+      
+      return true;
+    };
+
+    const canMergeUp = (key: string): boolean => {
+      const event = schedule[key];
+      if (!event) return false;
+
+      const [day, timeIndexStr] = key.split('-');
+      const timeIndex = parseInt(timeIndexStr, 10);
+      if (timeIndex === 0) return false;
+      
+      let parentIndex = -1;
+      for (let i = 1; i <= timeIndex; i++) {
+        const potentialParentKey = `${day}-${timeIndex - i}`;
+        const potentialParentEvent = schedule[potentialParentKey];
+        if (potentialParentEvent) {
+          if ((potentialParentEvent.rowspan || 1) >= i) {
+             parentIndex = timeIndex - i;
+          }
+          break;
+        }
+      }
+
+      if(parentIndex === -1) return false;
+
+      const parentKey = `${day}-${parentIndex}`;
+      const parentEvent = schedule[parentKey];
+      
+      return !!parentEvent;
     };
 
     const canSplit = (key: string): boolean => {
@@ -113,9 +157,14 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             </div>
             {/* Header: Days */}
             <div className="sticky top-0 left-0 z-10 bg-card" style={{ top: '60px' }}></div>
-            {days.map((day) => (
+            {days.map((day, dayIndex) => (
               <div key={day} className="text-center text-sm sm:text-base font-bold font-headline text-primary p-2 border-b-2 border-primary sticky bg-card z-10 flex items-center justify-center" style={{ top: '60px' }}>
-                {day}
+                <Input
+                  type="text"
+                  value={day}
+                  onChange={(e) => handleDayChange(dayIndex, e.target.value)}
+                  className="w-full h-9 bg-card border-none text-center text-sm sm:text-base font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
+                />
               </div>
             ))}
 
@@ -181,9 +230,11 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
           cellKey={selectedCell}
           eventData={selectedCell ? schedule[selectedCell] : undefined}
           onSave={handleSaveEvent}
-          onMergeDown={handleMerge}
+          onMergeDown={handleMergeDown}
+          onMergeUp={handleMergeUp}
           onSplit={handleSplit}
-          isMergeable={selectedCell ? canMergeDown(selectedCell) : false}
+          isMergeableDown={selectedCell ? canMergeDown(selectedCell) : false}
+          isMergeableUp={selectedCell ? canMergeUp(selectedCell) : false}
           isSplittable={selectedCell ? canSplit(selectedCell) : false}
         />
       </>
