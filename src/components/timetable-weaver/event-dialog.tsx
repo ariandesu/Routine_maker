@@ -42,9 +42,10 @@ interface EventDialogProps {
   cellKey: string | null;
   eventData?: ScheduleEvent;
   onSave: (key: string, event: ScheduleEvent | null) => void;
+  selectionSize: number;
 }
 
-export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: EventDialogProps) {
+export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selectionSize }: EventDialogProps) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -79,8 +80,10 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave }: Eve
         subtitle: data.subtitle || '',
         color: data.color,
       };
-      // Preserve rowspan if it exists
-      if (eventData?.rowSpan) {
+      
+      if (selectionSize > 1) {
+        newEvent.rowSpan = selectionSize;
+      } else if (eventData?.rowSpan) {
         newEvent.rowSpan = eventData.rowSpan;
       }
       onSave(cellKey, newEvent);
