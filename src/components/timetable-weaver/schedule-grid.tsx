@@ -51,7 +51,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
           <div 
             className="grid" 
             style={{ 
-              gridTemplateColumns: `minmax(100px, 0.7fr) repeat(${days.length}, minmax(100px, 1fr))`,
+              gridTemplateColumns: `minmax(90px, 0.5fr) repeat(${days.length}, minmax(110px, 1fr))`,
               gridTemplateRows: `auto auto repeat(${timeSlots.length}, minmax(70px, 1fr)) auto`
             }}
           >
@@ -87,7 +87,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                     onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
                     className="h-9 w-full bg-card border-none text-right text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
                   />
-                  <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100" onClick={() => removeTimeSlot(timeIndex)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 lg:opacity-0" onClick={() => removeTimeSlot(timeIndex)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
