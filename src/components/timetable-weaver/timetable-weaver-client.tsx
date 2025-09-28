@@ -129,30 +129,6 @@ export default function TimetableWeaverClient() {
     });
   };
 
-  const handleDaysChange = (oldDay: string, newDay: string) => {
-    setDays(currentDays => {
-      const dayIndex = currentDays.indexOf(oldDay);
-      if (dayIndex === -1) return currentDays;
-      const newDays = [...currentDays];
-      newDays[dayIndex] = newDay;
-      return newDays;
-    });
-  
-    setSchedule(currentSchedule => {
-      const newSchedule: ScheduleData = {};
-      Object.keys(currentSchedule).forEach(key => {
-        const [day, timeIndex] = key.split('-');
-        if (day === oldDay) {
-          const newKey = `${newDay}-${timeIndex}`;
-          newSchedule[newKey] = currentSchedule[key];
-        } else {
-          newSchedule[key] = currentSchedule[key];
-        }
-      });
-      return newSchedule;
-    });
-  };
-
   if (!isMounted) {
     return (
        <div className="p-4 md:p-8">
@@ -193,7 +169,6 @@ export default function TimetableWeaverClient() {
                   <ScheduleGrid 
                   ref={printableRef}
                   days={days}
-                  onDaysChange={handleDaysChange}
                   timeSlots={timeSlots}
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}
