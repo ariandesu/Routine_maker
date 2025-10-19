@@ -293,7 +293,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
-              gridTemplateRows: `auto auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
+              gridTemplateRows: `auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
             }}
             onMouseUp={handleMouseUp}
             onMouseLeave={() => setDragOverKey(null)}
@@ -305,7 +305,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                 "text-center font-bold font-headline p-2 border-b-2 border-primary bg-card z-10 flex items-center justify-center",
                 !isExporting && "sticky top-0"
               )}
-              style={{ gridColumn: `2 / span ${timeSlots.length}`}}
+              style={{ gridColumn: `1 / span ${timeSlots.length + 2}`}}
             >
               {isExporting ? (
                  <div className="w-full h-10 text-center text-xl sm:text-2xl font-bold font-headline text-primary flex items-center justify-center p-0">{headingText}</div>
@@ -320,46 +320,11 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
               )}
             </div>
 
-            {/* Header: Time Slots */}
-            <div className={cn("z-10 bg-card", !isExporting && "sticky top-0 left-0")} style={{ top: '60px' }}></div>
-            {timeSlots.map((time, timeIndex) => (
-              <div key={time} className={cn(
-                  "text-center text-sm sm:text-base font-bold font-headline text-primary p-2 border-b-2 border-primary bg-card z-10 flex items-center justify-center group",
-                  !isExporting && "sticky"
-                )} style={{ top: '60px' }}>
-                {isExporting ? (
-                    <div className="w-full h-9 bg-card border-none text-center text-sm sm:text-base font-bold font-headline text-primary p-0 flex items-center justify-center">{time}</div>
-                ) : (
-                    <Input
-                      type="text"
-                      value={time}
-                      onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
-                      className="w-full h-9 bg-card border-none text-center text-sm sm:text-base font-bold font-headline text-primary focus-visible:ring-1 focus-visible:ring-ring p-0"
-                    />
-                )}
-                 {!isExporting && (
-                    <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 lg:opacity-0" onClick={() => removeTimeSlot(timeIndex)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-              </div>
-            ))}
-             {!isExporting && (
-                  <div className={cn("p-2 border-b-2 border-primary bg-card flex items-center justify-center", !isExporting && "sticky")} style={{ top: '60px' }}>
-                    <Button variant="outline" className="w-full h-9" onClick={addTimeSlot}>
-                        <Plus className="mr-2 h-4 w-4" /> 
-                        <span className="sm:hidden">Add</span>
-                        <span className="hidden sm:inline">Add Slot</span>
-                    </Button>
-                  </div>
-              )}
-
-
             {/* Days and Cells */}
             {days.map((day, dayIndex) => (
               <React.Fragment key={dayIndex}>
                 <div className={cn(
-                    "p-1 text-left text-xs sm:text-sm font-semibold text-muted-foreground border-r bg-card flex items-center justify-start gap-1 sm:gap-2 group",
+                    "p-1 text-left text-xs sm:text-sm font-semibold text-muted-foreground border-r border-b bg-card flex items-center justify-start gap-1 sm:gap-2 group",
                     !isExporting && "sticky left-0"
                   )}>
                   {isExporting ? (
@@ -378,7 +343,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                     </Button>
                   )}
                 </div>
-                {timeSlots.map((_, timeIndex) => {
+                {timeSlots.map((time, timeIndex) => {
                   const key = `${dayIndex}-${timeIndex}`;
                   if (spannedCells.includes(key)) return null;
 
@@ -420,10 +385,19 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                             <span className="text-neutral-400 font-bold text-2xl">+</span>
                         </div>
                       )}
+                      {!event && (
+                        <span className="absolute top-1 left-2 text-neutral-400 text-[10px] font-medium pointer-events-none">{time}</span>
+                      )}
                     </div>
                   );
                 })}
-                <div className="border-b"></div>
+                <div className="border-b flex items-center justify-center">
+                    {!isExporting && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => removeTimeSlot(timeSlots.length - 1)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
               </React.Fragment>
             ))}
              {/* Add Day Button */}
@@ -439,11 +413,25 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                   </Button>
                 )}
             </div>
-            {/* Empty cells for the add button row */}
+            {/* Add Time Slot Buttons */}
             {timeSlots.map((_, timeIndex) => (
-                <div key={`add-day-filler-${timeIndex}`} className="border-r"></div>
+                <div key={`add-time-filler-${timeIndex}`} className="border-r p-2 flex items-center justify-center">
+                    {!isExporting && (
+                        <div className="w-full flex justify-center items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => removeTimeSlot(timeIndex)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
             ))}
-            <div></div>
+            <div className="flex items-center justify-center p-2">
+                {!isExporting && (
+                    <Button variant="outline" className="w-full h-9" onClick={addTimeSlot}>
+                        <Plus className="h-4 w-4" /> 
+                    </Button>
+                )}
+            </div>
           </div>
           <PopoverContent>
             <div className="flex gap-2">
