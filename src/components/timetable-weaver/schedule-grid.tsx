@@ -293,7 +293,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
-              gridTemplateRows: `auto auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
+              gridTemplateRows: `auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
             }}
             onMouseUp={handleMouseUp}
             onMouseLeave={() => setDragOverKey(null)}
@@ -319,28 +319,21 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
               )}
             </div>
 
-            {/* Time Slot headers */}
-            <div className={cn("bg-card z-10", !isExporting && "sticky top-0 left-0")}></div>
-            {timeSlots.map((time, timeIndex) => (
-                <div key={`header-${timeIndex}`} className={cn("p-1 border-r border-b text-center text-xs sm:text-sm font-semibold text-muted-foreground flex items-center justify-center gap-1 sm:gap-2 group", !isExporting && "sticky top-12")}>
-                   {isExporting ? (
-                     <div className="h-9 w-full flex items-center justify-center">{time}</div>
-                   ) : (
-                    <>
-                      <Input
-                        type="text"
-                        value={time}
-                        onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
-                        className="h-9 w-full bg-card border-none text-center text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
-                      />
-                      <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 lg:opacity-0" onClick={() => removeTimeSlot(timeIndex)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
-                   )}
-                </div>
-            ))}
-            <div className={cn("border-b bg-card", !isExporting && "sticky top-12")}></div>
+            {/* Time Slot Inputs - Hidden but used for data management */}
+            <div style={{ display: 'none' }}>
+                {timeSlots.map((time, timeIndex) => (
+                    <div key={`header-${timeIndex}`}>
+                        <Input
+                            type="text"
+                            value={time}
+                            onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
+                        />
+                        <Button onClick={() => removeTimeSlot(timeIndex)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
 
             {/* Days and Cells */}
             {days.map((day, dayIndex) => (
