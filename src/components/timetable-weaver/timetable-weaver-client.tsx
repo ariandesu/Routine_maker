@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ControlPanel } from '@/components/timetable-weaver/control-panel';
+import { ActionButtons } from '@/components/timetable-weaver/action-buttons';
+import { DimensionControls } from '@/components/timetable-weaver/dimension-controls';
 import { ScheduleGrid } from '@/components/timetable-weaver/schedule-grid';
 import { initialScheduleData, initialDays, initialTimeSlots } from '@/components/timetable-weaver/data';
 import type { ScheduleData, ScheduleEvent } from '@/lib/types';
@@ -304,6 +305,12 @@ export default function TimetableWeaverClient() {
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by MHR3D</h1>
                     <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
+                <DimensionControls
+                    cellWidth={cellWidth}
+                    onCellWidthChange={(value) => setCellWidth(value[0])}
+                    cellHeight={cellHeight}
+                    onCellHeightChange={(value) => setCellHeight(value[0])}
+                />
             </header>
             <div className={'font-body'}>
               <ScheduleGrid 
@@ -326,14 +333,10 @@ export default function TimetableWeaverClient() {
             <Separator className="my-8" />
             
             <footer className="flex justify-center">
-              <ControlPanel 
+              <ActionButtons
                 onShare={handleShare}
                 onImport={handleImport}
                 onExport={handleExport}
-                cellWidth={cellWidth}
-                onCellWidthChange={(value) => setCellWidth(value[0])}
-                cellHeight={cellHeight}
-                onCellHeightChange={(value) => setCellHeight(value[0])}
               />
             </footer>
         </div>
