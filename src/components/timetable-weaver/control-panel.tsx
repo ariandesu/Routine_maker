@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FileDown, FileUp, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { FileDown, FileUp, Share2 } from "lucide-react";
 import { Slider } from '@/components/ui/slider';
 import { Label } from '../ui/label';
 
@@ -31,7 +31,7 @@ export function ControlPanel({ onShare, onImport, onExport, cellWidth, onCellWid
   };
   
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:max-w-3xl">
       <div className="flex items-center gap-2">
         <input type="file" ref={fileInputRef} onChange={onImport} accept=".csv" className="hidden" />
         <Button onClick={handleImportClick}><FileUp className="mr-2 h-4 w-4" /> Import</Button>
@@ -48,7 +48,7 @@ export function ControlPanel({ onShare, onImport, onExport, cellWidth, onCellWid
         </DropdownMenu>
         <Button variant="outline" onClick={onShare}><Share2 className="mr-2 h-4 w-4" /> Share</Button>
       </div>
-      <div className="flex items-center gap-4 w-full sm:w-auto">
+      <div className="flex items-center gap-4 w-full sm:w-auto flex-grow">
         <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-36">
           <Label htmlFor="width-slider" className="text-xs">Width</Label>
           <Slider

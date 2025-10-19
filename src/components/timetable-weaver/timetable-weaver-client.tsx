@@ -12,6 +12,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { Separator } from '../ui/separator';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -298,20 +299,11 @@ export default function TimetableWeaverClient() {
   return (
     <div className={"min-h-svh bg-background"}>
         <div className="p-2 sm:p-4 md:p-8">
-            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
+            <header className="flex flex-col sm:flex-row items-center justify-between mb-6 md:mb-8 gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by MHR3D</h1>
                     <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
-                <ControlPanel 
-                  onShare={handleShare}
-                  onImport={handleImport}
-                  onExport={handleExport}
-                  cellWidth={cellWidth}
-                  onCellWidthChange={(value) => setCellWidth(value[0])}
-                  cellHeight={cellHeight}
-                  onCellHeightChange={(value) => setCellHeight(value[0])}
-                />
             </header>
             <div className={'font-body'}>
               <ScheduleGrid 
@@ -330,6 +322,20 @@ export default function TimetableWeaverClient() {
               cellHeight={cellHeight}
               />
             </div>
+
+            <Separator className="my-8" />
+            
+            <footer className="flex justify-center">
+              <ControlPanel 
+                onShare={handleShare}
+                onImport={handleImport}
+                onExport={handleExport}
+                cellWidth={cellWidth}
+                onCellWidthChange={(value) => setCellWidth(value[0])}
+                cellHeight={cellHeight}
+                onCellHeightChange={(value) => setCellHeight(value[0])}
+              />
+            </footer>
         </div>
     </div>
   );
