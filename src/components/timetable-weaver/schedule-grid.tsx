@@ -334,7 +334,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                       type="text"
                       value={day}
                       onChange={(e) => handleDayChange(dayIndex, e.target.value)}
-                      className="h-9 w-full bg-card border-none text-left text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-9 w-full bg-card border-none text-left text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring pl-3"
                     />
                   )}
                   {!isExporting && (
@@ -377,6 +377,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                            onDragEnd={handleDragEnd}
                            onClick={() => handleSingleCellClick(key)}
                         >
+                           {event.time && <p className="text-xs opacity-60 font-semibold pointer-events-none">{event.time}</p>}
                            <p className="font-bold text-xs sm:text-sm leading-tight pointer-events-none">{event.title}</p>
                            <p className="text-xs opacity-80 mt-1 pointer-events-none">{event.subtitle}</p>
                         </div>
@@ -413,16 +414,45 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                   </Button>
                 )}
             </div>
+            {/* Time Slot headers / remove buttons */}
+            <div className={cn("bg-card z-10", !isExporting && "sticky left-0")}></div>
+            {timeSlots.map((time, timeIndex) => (
+                <div key={`header-${timeIndex}`} className="p-1 border-r border-b text-center text-xs sm:text-sm font-semibold text-muted-foreground flex items-center justify-center gap-1 sm:gap-2 group">
+                   {isExporting ? (
+                     <div className="h-9 w-full flex items-center justify-center">{time}</div>
+                   ) : (
+                    <>
+                      <Input
+                        type="text"
+                        value={time}
+                        onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
+                        className="h-9 w-full bg-card border-none text-center text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                      <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 lg:opacity-0" onClick={() => removeTimeSlot(timeIndex)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                   )}
+                </div>
+            ))}
+             <div className="border-b flex items-center justify-center"></div>
+
+             {/* Add Day Button */}
+            <div className={cn(
+                "p-2 border-r bg-card flex items-center justify-center",
+                !isExporting && "sticky left-0"
+              )}>
+                {!isExporting && (
+                  <Button variant="outline" className="w-full h-9" onClick={addDay}>
+                      <Plus className="mr-2 h-4 w-4" /> 
+                      <span className="sm:hidden">Add</span>
+                      <span className="hidden sm:inline">Add Day</span>
+                  </Button>
+                )}
+            </div>
             {/* Add Time Slot Buttons */}
             {timeSlots.map((_, timeIndex) => (
                 <div key={`add-time-filler-${timeIndex}`} className="border-r p-2 flex items-center justify-center">
-                    {!isExporting && (
-                        <div className="w-full flex justify-center items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => removeTimeSlot(timeIndex)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
                 </div>
             ))}
             <div className="flex items-center justify-center p-2">

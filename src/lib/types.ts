@@ -2,6 +2,7 @@
 export type ScheduleEvent = {
   title: string;
   subtitle: string;
+  time?: string;
   rowSpan?: number;
   colSpan?: number;
 };

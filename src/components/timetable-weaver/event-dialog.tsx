@@ -29,6 +29,7 @@ import { Trash2 } from 'lucide-react';
 const eventSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }).max(50),
   subtitle: z.string().max(50).optional(),
+  time: z.string().max(20).optional(),
 });
 
 type EventFormValues = z.infer<typeof eventSchema>;
@@ -48,6 +49,7 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
     defaultValues: {
       title: '',
       subtitle: '',
+      time: '',
     },
   });
 
@@ -58,11 +60,13 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
       reset({
         title: eventData.title,
         subtitle: eventData.subtitle,
+        time: eventData.time,
       });
     } else {
       reset({
         title: '',
         subtitle: '',
+        time: '',
       });
     }
   }, [eventData, reset]);
@@ -72,6 +76,7 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
       const newEvent: ScheduleEvent = {
         title: data.title,
         subtitle: data.subtitle || '',
+        time: data.time || '',
       };
       
       const currentSpan = eventData?.colSpan;
@@ -124,6 +129,19 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
                   <FormLabel>Subtitle (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Room 101 or Prof. Smith" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Time (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 9:30 AM" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
