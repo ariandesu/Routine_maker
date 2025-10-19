@@ -358,17 +358,17 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             {days.map((day, dayIndex) => (
               <React.Fragment key={dayIndex}>
                 <div className={cn(
-                    "p-1 text-right text-xs sm:text-sm font-semibold text-muted-foreground border-r bg-card flex items-center justify-end gap-1 sm:gap-2 group",
+                    "p-1 text-left text-xs sm:text-sm font-semibold text-muted-foreground border-r bg-card flex items-center justify-start gap-1 sm:gap-2 group",
                     !isExporting && "sticky left-0"
                   )}>
                   {isExporting ? (
-                     <div className="h-9 w-full text-right text-xs sm:text-sm pr-3 flex items-center justify-end">{day}</div>
+                     <div className="h-9 w-full text-left text-xs sm:text-sm pl-3 flex items-center justify-start">{day}</div>
                   ) : (
                     <Input
                       type="text"
                       value={day}
                       onChange={(e) => handleDayChange(dayIndex, e.target.value)}
-                      className="h-9 w-full bg-card border-none text-right text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-9 w-full bg-card border-none text-left text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
                     />
                   )}
                   {!isExporting && (
