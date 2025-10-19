@@ -24,7 +24,7 @@ interface ScheduleGridProps {
 type Selection = {
   start: { dayIndex: number; timeIndex: number; key: string };
   end: { dayIndex: number; timeIndex: number; key: string };
-  timeIndex: number;
+  dayIndex: number;
 } | null;
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
@@ -39,19 +39,19 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     const handleMouseDown = (dayIndex: number, timeIndex: number) => {
       setIsSelecting(true);
       const day = days[dayIndex];
-      const key = `${day}-${timeIndex}`;
+      const key = `${dayIndex}-${timeIndex}`;
       setSelection({
         start: { dayIndex, timeIndex, key },
         end: { dayIndex, timeIndex, key },
-        timeIndex,
+        dayIndex,
       });
       setIsPopoverOpen(false);
     };
 
     const handleMouseEnter = (dayIndex: number, timeIndex: number) => {
-      if (isSelecting && selection && timeIndex === selection.timeIndex) {
+      if (isSelecting && selection && dayIndex === selection.dayIndex) {
         const day = days[dayIndex];
-        const key = `${day}-${timeIndex}`;
+        const key = `${dayIndex}-${timeIndex}`;
         const newEnd = { dayIndex, timeIndex, key };
         setSelection({
           ...selection,
@@ -65,14 +65,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
         setIsSelecting(false);
         if (selection) {
           const { start, end } = selection;
-          const startIdx = Math.min(start.dayIndex, end.dayIndex);
-          const endIdx = Math.max(start.dayIndex, end.dayIndex);
+          const startIdx = Math.min(start.timeIndex, end.timeIndex);
+          const endIdx = Math.max(start.timeIndex, end.timeIndex);
           
           if (startIdx !== endIdx) {
             setIsPopoverOpen(true);
           } else {
-            // This is a single cell click
-             const key = `${days[start.dayIndex]}-${start.timeIndex}`;
+             const key = `${selection.dayIndex}-${start.timeIndex}`;
              const event = schedule[key];
              if(event?.colSpan && event.colSpan > 1) {
                 const isMerged = true;
@@ -103,10 +102,10 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
 
     const isCellSelected = (dayIndex: number, timeIndex: number) => {
       if (!selection) return false;
-      if (timeIndex !== selection.timeIndex) return false;
-      const start = Math.min(selection.start.dayIndex, selection.end.dayIndex);
-      const end = Math.max(selection.start.dayIndex, selection.end.dayIndex);
-      return dayIndex >= start && dayIndex <= end;
+      if (dayIndex !== selection.dayIndex) return false;
+      const start = Math.min(selection.start.timeIndex, selection.end.timeIndex);
+      const end = Math.max(selection.start.timeIndex, selection.end.timeIndex);
+      return timeIndex >= start && timeIndex <= end;
     };
 
     const handleSingleCellClick = (key: string, isMergedClick = false) => {
@@ -115,13 +114,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
         const isActuallyMerged = event?.colSpan && event.colSpan > 1;
 
         if (isActuallyMerged) {
-            const [day, timeIndexStr] = key.split('-');
-            const dayIndex = days.indexOf(day);
+            const [dayIndexStr, timeIndexStr] = key.split('-');
+            const dayIndex = parseInt(dayIndexStr);
             const timeIndex = parseInt(timeIndexStr);
             setSelection({
                 start: { dayIndex: dayIndex, timeIndex: timeIndex, key: key },
-                end: {  dayIndex: dayIndex + event.colSpan! - 1, timeIndex: timeIndex, key: `${days[dayIndex + event.colSpan! - 1]}-${timeIndex}` },
-                timeIndex: timeIndex
+                end: {  dayIndex: dayIndex, timeIndex: timeIndex + event.colSpan! - 1, key: `${dayIndex}-${timeIndex + event.colSpan! - 1}` },
+                dayIndex: dayIndex
             })
             setIsPopoverOpen(true);
         } else {
@@ -133,9 +132,9 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     const handleMerge = () => {
       if (!selection) return;
       const { start, end } = selection;
-      const startIdx = Math.min(start.dayIndex, end.dayIndex);
+      const startIdx = Math.min(start.timeIndex, end.timeIndex);
       
-      const firstCellKey = `${days[startIdx]}-${start.timeIndex}`;
+      const firstCellKey = `${start.dayIndex}-${startIdx}`;
       setSelectedCell(firstCellKey);
       setIsEventDialogOpen(true);
       setIsPopoverOpen(false);
@@ -144,16 +143,15 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     const handleUnmerge = () => {
       if(!selection) return;
       const { start } = selection;
-      const day = days[start.dayIndex];
-      const event = schedule[`${day}-${start.timeIndex}`];
+      const event = schedule[`${start.dayIndex}-${start.timeIndex}`];
       
       if (event && event.colSpan && event.colSpan > 1) {
         const keysToRemove = [];
         for (let i = 1; i < event.colSpan; i++) {
-          keysToRemove.push(`${days[start.dayIndex + i]}-${start.timeIndex}`);
+          keysToRemove.push(`${start.dayIndex}-${start.timeIndex + i}`);
         }
         const updatedEvent = { ...event, colSpan: 1 };
-        onUpdateEvent(`${day}-${start.timeIndex}`, updatedEvent, keysToRemove);
+        onUpdateEvent(`${start.dayIndex}-${start.timeIndex}`, updatedEvent, keysToRemove);
       }
       setIsPopoverOpen(false);
       setSelection(null);
@@ -169,13 +167,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
 
     const handleSaveEvent = (key: string, event: ScheduleEvent | null) => {
         if (event && selection && selection.start.key !== selection.end.key) {
-          const startIdx = Math.min(selection.start.dayIndex, selection.end.dayIndex);
-          const endIdx = Math.max(selection.start.dayIndex, selection.end.dayIndex);
+          const startIdx = Math.min(selection.start.timeIndex, selection.end.timeIndex);
+          const endIdx = Math.max(selection.start.timeIndex, selection.end.timeIndex);
           event.colSpan = endIdx - startIdx + 1;
           
           const keysToRemove = [];
           for (let i = startIdx + 1; i <= endIdx; i++) {
-            keysToRemove.push(`${days[i]}-${selection.timeIndex}`);
+            keysToRemove.push(`${selection.dayIndex}-${i}`);
           }
           onUpdateEvent(key, event, keysToRemove);
         } else {
@@ -224,19 +222,19 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     
     const eventForDialog = selectedCell ? schedule[selectedCell] : undefined;
     
-    const selectionSize = selection ? Math.abs(selection.end.dayIndex - selection.start.dayIndex) + 1 : 1;
+    const selectionSize = selection ? Math.abs(selection.end.timeIndex - selection.start.timeIndex) + 1 : 1;
 
     let spannedCells: string[] = [];
     Object.keys(schedule).forEach(key => {
         const event = schedule[key];
         if (event && event.colSpan && event.colSpan > 1) {
-            const [day, timeIndexStr] = key.split('-');
-            const dayIndex = days.indexOf(day);
+            const [dayIndexStr, timeIndexStr] = key.split('-');
+            const dayIndex = parseInt(dayIndexStr);
             const timeIndex = parseInt(timeIndexStr);
             if (dayIndex !== -1) {
               for (let i = 1; i < event.colSpan; i++) {
-                  if (dayIndex + i < days.length) {
-                    spannedCells.push(`${days[dayIndex + i]}-${timeIndex}`);
+                  if (timeIndex + i < timeSlots.length) {
+                    spannedCells.push(`${dayIndex}-${timeIndex + i}`);
                   }
               }
             }
@@ -344,7 +342,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                   )}
                 </div>
                 {timeSlots.map((_, timeIndex) => {
-                  const key = `${day}-${timeIndex}`;
+                  const key = `${dayIndex}-${timeIndex}`;
                   if (spannedCells.includes(key)) return null;
 
                   const event = schedule[key];
@@ -392,9 +390,9 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             </div>
             {/* Empty cells for the add button row */}
             {timeSlots.map((_, timeIndex) => (
-                <div key={`add-day-filler-${timeIndex}`} className="border-r border-b"></div>
+                <div key={`add-day-filler-${timeIndex}`} className="border-r"></div>
             ))}
-            <div className="border-b"></div>
+            <div></div>
           </div>
           <PopoverContent>
             <div className="flex gap-2">

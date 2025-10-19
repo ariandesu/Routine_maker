@@ -82,21 +82,14 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
         color: data.color,
       };
       
-      const currentSpan = cellKey.includes('-') ? eventData?.colSpan : eventData?.rowSpan;
+      const currentSpan = eventData?.colSpan;
       
       if (selectionSize > 1) {
-        if (cellKey.includes('-')) { // This logic assumes keys are Day-Time, might need adjustment
-             newEvent.colSpan = selectionSize;
-        } else {
-             newEvent.rowSpan = selectionSize;
-        }
+        newEvent.colSpan = selectionSize;
       } else if (currentSpan) {
-        if (cellKey.includes('-')) {
-             newEvent.colSpan = currentSpan;
-        } else {
-             newEvent.rowSpan = currentSpan;
-        }
+        newEvent.colSpan = currentSpan;
       }
+
       onSave(cellKey, newEvent);
     }
   };

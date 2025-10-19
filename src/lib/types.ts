@@ -7,5 +7,5 @@ export type ScheduleEvent = {
 };
 
 export type ScheduleData = {
-  [key: string]: ScheduleEvent; // key format: "Day-TimeSlotIndex"
+  [key: string]: ScheduleEvent; // key format: "DayIndex-TimeSlotIndex"
 };

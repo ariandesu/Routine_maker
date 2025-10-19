@@ -112,14 +112,40 @@ export default function TimetableWeaverClient() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       try {
-        const rows = text.split('\n').slice(1); // Skip header row
+        const rows = text.split('\n');
+        const header = rows[0].split(',').map(h => h.trim());
+        const dayIndex = header.indexOf('Day');
+        const timeIndex = header.indexOf('Time');
+
+        if (dayIndex === -1 || timeIndex === -1) {
+            toast({ variant: "destructive", title: "Import Failed", description: "CSV must contain 'Day' and 'Time' columns." });
+            return;
+        }
+
+        const importedDays = Array.from(new Set(rows.slice(1).map(row => row.split(',')[dayIndex].trim()).filter(Boolean)));
+        const importedTimeSlots = Array.from(new Set(rows.slice(1).map(row => row.split(',')[timeIndex].trim()).filter(Boolean)));
+
         const newSchedule: ScheduleData = {};
-        rows.forEach(row => {
-          const [key, title, subtitle, color] = row.split(',');
-          if (key && title && subtitle && color) {
-            newSchedule[key.trim()] = { title: title.trim(), subtitle: subtitle.trim(), color: color.trim() };
+        rows.slice(1).forEach(row => {
+          const cols = row.split(',').map(c => c.trim());
+          const day = cols[dayIndex];
+          const time = cols[timeIndex];
+          const dayIdx = importedDays.indexOf(day);
+          const timeIdx = importedTimeSlots.indexOf(time);
+
+          if (dayIdx !== -1 && timeIdx !== -1) {
+              const key = `${dayIdx}-${timeIdx}`;
+              const title = cols[header.indexOf('Title')] || '';
+              const subtitle = cols[header.indexOf('Subtitle')] || '';
+              const color = cols[header.indexOf('Color')] || 'bg-slate-300';
+              const colSpan = parseInt(cols[header.indexOf('ColSpan')] || '1');
+              
+              newSchedule[key] = { title, subtitle, color, colSpan };
           }
         });
+        
+        setDays(importedDays);
+        setTimeSlots(importedTimeSlots);
         setSchedule(newSchedule);
         toast({ title: "Import Successful", description: "Schedule has been imported from CSV." });
       } catch (error) {
@@ -131,7 +157,45 @@ export default function TimetableWeaverClient() {
     event.target.value = '';
   };
   
-  const handleExport = async (format: 'PNG' | 'JPG' | 'PDF') => {
+  const handleExport = async (format: 'PNG' | 'JPG' | 'PDF' | 'CSV') => {
+    if (format === 'CSV') {
+      try {
+        const header = ['Day', 'Time', 'Title', 'Subtitle', 'Color', 'ColSpan'];
+        const rows = Object.entries(schedule).map(([key, event]) => {
+          const [dayIndex, timeIndex] = key.split('-').map(Number);
+          return [
+            days[dayIndex],
+            timeSlots[timeIndex],
+            event.title,
+            event.subtitle,
+            event.color,
+            event.colSpan || 1
+          ].join(',');
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8," + [header.join(','), ...rows].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "schedule.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+          title: "Export Successful!",
+          description: `Your schedule has been downloaded as a CSV file.`,
+        });
+      } catch (error) {
+         console.error("CSV Export failed", error);
+         toast({
+          variant: "destructive",
+          title: "Export Failed",
+          description: "Could not generate CSV file.",
+        });
+      }
+      return;
+    }
+
     if (!printableRef.current) {
       toast({
         variant: "destructive",
