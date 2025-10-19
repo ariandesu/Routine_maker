@@ -72,7 +72,6 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
       const newEvent: ScheduleEvent = {
         title: data.title,
         subtitle: data.subtitle || '',
-        color: 'bg-white',
       };
       
       const currentSpan = eventData?.colSpan;

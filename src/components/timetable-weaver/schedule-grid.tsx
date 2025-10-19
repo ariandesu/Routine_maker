@@ -405,7 +405,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                     >
                       {event ? (
                         <div 
-                           className={cn("h-full w-full rounded p-2 text-black flex flex-col justify-center", event.color, 'border border-neutral-300')}
+                           className={cn("h-full w-full rounded p-2 text-black flex flex-col justify-center", 'bg-white border border-neutral-300')}
                            draggable
                            onDragStart={(e) => handleDragStart(e, key)}
                            onDragEnd={handleDragEnd}

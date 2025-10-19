@@ -159,7 +159,7 @@ export default function TimetableWeaverClient() {
               const subtitle = cols[header.indexOf('Subtitle')] || '';
               const colSpan = parseInt(cols[header.indexOf('ColSpan')] || '1');
               
-              newSchedule[key] = { title, subtitle, color: 'bg-white', colSpan };
+              newSchedule[key] = { title, subtitle, colSpan };
           }
         });
         
