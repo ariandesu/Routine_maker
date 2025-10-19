@@ -19,6 +19,7 @@ interface ScheduleGridProps {
   headingText: string;
   onHeadingTextChange: (text: string) => void;
   isExporting?: boolean;
+  cellWidth: number;
 }
 
 type Selection = {
@@ -28,7 +29,7 @@ type Selection = {
 } | null;
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, headingText, onHeadingTextChange, isExporting }, ref) => {
+  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, headingText, onHeadingTextChange, isExporting, cellWidth }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
     const [isEventDialogOpen, setIsEventDialogOpen] = React.useState(false);
     const [selection, setSelection] = React.useState<Selection>(null);
@@ -254,7 +255,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             ref={gridRef}
             className="grid" 
             style={{ 
-              gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(110px, 1fr)) auto`,
+              gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
               gridTemplateRows: `auto auto repeat(${days.length}, minmax(70px, 1fr)) auto`,
               userSelect: isSelecting ? 'none' : 'auto'
             }}
