@@ -75,6 +75,38 @@ export default function TimetableWeaverClient() {
     });
   };
 
+  const handleMoveEvent = (sourceKey: string, destinationKey: string) => {
+    setSchedule(prev => {
+      const newSchedule = { ...prev };
+      const eventToMove = newSchedule[sourceKey];
+      
+      if (!eventToMove) return prev;
+      
+      const sourceColSpan = eventToMove.colSpan || 1;
+      const [destDayIndexStr, destTimeIndexStr] = destinationKey.split('-');
+      const destDayIndex = parseInt(destDayIndexStr, 10);
+      const destTimeIndex = parseInt(destTimeIndexStr, 10);
+
+      // Check if the destination cells are available
+      for (let i = 0; i < sourceColSpan; i++) {
+        const key = `${destDayIndex}-${destTimeIndex + i}`;
+        if (newSchedule[key]) {
+          toast({
+            variant: "destructive",
+            title: "Cannot move event",
+            description: "The destination cells are not empty.",
+          });
+          return prev;
+        }
+      }
+      
+      delete newSchedule[sourceKey];
+      newSchedule[destinationKey] = eventToMove;
+
+      return newSchedule;
+    });
+  };
+
   const handleShare = () => {
     try {
       const data = { schedule, days, timeSlots, headingText };
@@ -287,6 +319,7 @@ export default function TimetableWeaverClient() {
               onTimeSlotsChange={setTimeSlots}
               schedule={schedule}
               onUpdateEvent={handleUpdateEvent}
+              onMoveEvent={handleMoveEvent}
               headingText={headingText}
               onHeadingTextChange={setHeadingText}
               isExporting={isExporting}

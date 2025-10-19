@@ -16,6 +16,7 @@ interface ScheduleGridProps {
   onTimeSlotsChange: (newTimeSlots: string[]) => void;
   schedule: ScheduleData;
   onUpdateEvent: (key: string, event: ScheduleEvent | null, keysToRemove?: string[]) => void;
+  onMoveEvent: (sourceKey: string, destinationKey: string) => void;
   headingText: string;
   onHeadingTextChange: (text: string) => void;
   isExporting?: boolean;
@@ -29,17 +30,21 @@ type Selection = {
 } | null;
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, headingText, onHeadingTextChange, isExporting, cellWidth }, ref) => {
+  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, onMoveEvent, headingText, onHeadingTextChange, isExporting, cellWidth }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
     const [isEventDialogOpen, setIsEventDialogOpen] = React.useState(false);
     const [selection, setSelection] = React.useState<Selection>(null);
     const [isSelecting, setIsSelecting] = React.useState(false);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const gridRef = React.useRef<HTMLDivElement>(null);
+    const [dragOverKey, setDragOverKey] = React.useState<string | null>(null);
 
     const handleMouseDown = (dayIndex: number, timeIndex: number) => {
-      setIsSelecting(true);
+      // Prevent starting selection if dragging an event
       const key = `${dayIndex}-${timeIndex}`;
+      if (schedule[key]) return;
+
+      setIsSelecting(true);
       setSelection({
         start: { dayIndex, timeIndex, key },
         end: { dayIndex, timeIndex, key },
@@ -84,13 +89,14 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
     };
     
     React.useEffect(() => {
-        const handleGlobalMouseUp = () => {
-          if (isSelecting) {
-            setIsSelecting(false);
-             if (selection && selection.start.key === selection.end.key) {
-                handleSingleCellClick(selection.start.key);
+        const handleGlobalMouseUp = (e: MouseEvent) => {
+            // Check if the mouse up is outside of the grid, then reset selection
+            if (isSelecting && gridRef.current && !gridRef.current.contains(e.target as Node)) {
+              setIsSelecting(false);
+              setSelection(null);
+            } else if (isSelecting && selection?.start.key === selection?.end.key) {
+               handleSingleCellClick(selection.start.key);
             }
-          }
         };
         window.addEventListener('mouseup', handleGlobalMouseUp);
         return () => {
@@ -218,6 +224,36 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
       const newDays = days.filter((_, i) => i !== index);
       onDaysChange(newDays);
     };
+
+    // Drag and Drop handlers
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, key: string) => {
+      e.dataTransfer.setData("text/plain", key);
+      // Optional: Add a dragging class for visual feedback
+      e.currentTarget.classList.add('opacity-50');
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>, key: string) => {
+      e.preventDefault();
+      if (dragOverKey !== key) {
+        setDragOverKey(key);
+      }
+    };
+    
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>, destinationKey: string) => {
+      e.preventDefault();
+      const sourceKey = e.dataTransfer.getData("text/plain");
+      setDragOverKey(null);
+
+      // Prevent dropping on its own cell or a cell that's part of a merged event
+      if (sourceKey !== destinationKey && !schedule[destinationKey]) {
+        onMoveEvent(sourceKey, destinationKey);
+      }
+    };
+
+    const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+      e.currentTarget.classList.remove('opacity-50');
+      setDragOverKey(null);
+    };
     
     const eventForDialog = selectedCell ? schedule[selectedCell] : undefined;
     
@@ -250,15 +286,16 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             }}>
             </div>
         </PopoverTrigger>
-        <div ref={ref} className="bg-card p-1 sm:p-2 md:p-4 rounded-lg shadow-lg overflow-x-auto" onMouseUp={handleMouseUp}>
+        <div ref={ref} className="bg-card p-1 sm:p-2 md:p-4 rounded-lg shadow-lg overflow-x-auto">
           <div 
             ref={gridRef}
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
               gridTemplateRows: `auto auto repeat(${days.length}, minmax(70px, 1fr)) auto`,
-              userSelect: isSelecting ? 'none' : 'auto'
             }}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={() => setDragOverKey(null)}
           >
              {/* Heading Text */}
             <div className={cn("bg-card z-10", !isExporting && "sticky top-0 left-0")}></div>
@@ -345,23 +382,37 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                   if (spannedCells.includes(key)) return null;
 
                   const event = schedule[key];
+                  const isDragOver = dragOverKey === key && !event;
+
                   return (
                     <div
                       key={key}
                       className={cn(
-                          "border-r border-b p-1 cursor-pointer hover:bg-neutral-100 transition-colors relative group",
-                          isCellSelected(dayIndex, timeIndex) && "bg-neutral-200"
+                          "border-r border-b p-1 relative group",
+                          isCellSelected(dayIndex, timeIndex) && !event ? "bg-neutral-200" : "bg-card",
+                          !event && "hover:bg-neutral-100 transition-colors",
+                          isDragOver && "bg-accent",
+                          event ? "cursor-grab" : "cursor-pointer"
                       )}
                       style={{
                         gridColumn: event?.colSpan ? `span ${event.colSpan}` : 'span 1'
                       }}
                       onMouseDown={() => handleMouseDown(dayIndex, timeIndex)}
                       onMouseEnter={() => handleMouseEnter(dayIndex, timeIndex)}
+                      onClick={() => !event && handleSingleCellClick(key)}
+                      onDragOver={(e) => handleDragOver(e, key)}
+                      onDrop={(e) => handleDrop(e, key)}
                     >
                       {event ? (
-                        <div className={cn("h-full w-full rounded p-2 text-black flex flex-col justify-center", event.color, 'border border-neutral-300')}>
-                           <p className="font-bold text-xs sm:text-sm leading-tight">{event.title}</p>
-                           <p className="text-xs opacity-80 mt-1">{event.subtitle}</p>
+                        <div 
+                           className={cn("h-full w-full rounded p-2 text-black flex flex-col justify-center", event.color, 'border border-neutral-300')}
+                           draggable
+                           onDragStart={(e) => handleDragStart(e, key)}
+                           onDragEnd={handleDragEnd}
+                           onClick={() => handleSingleCellClick(key)}
+                        >
+                           <p className="font-bold text-xs sm:text-sm leading-tight pointer-events-none">{event.title}</p>
+                           <p className="text-xs opacity-80 mt-1 pointer-events-none">{event.subtitle}</p>
                         </div>
                       ) : (
                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
