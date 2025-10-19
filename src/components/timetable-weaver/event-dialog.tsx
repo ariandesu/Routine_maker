@@ -58,9 +58,9 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
   useEffect(() => {
     if (eventData) {
       reset({
-        title: eventData.title,
-        subtitle: eventData.subtitle,
-        time: eventData.time,
+        title: eventData.title || '',
+        subtitle: eventData.subtitle || '',
+        time: eventData.time || '',
       });
     } else {
       reset({
