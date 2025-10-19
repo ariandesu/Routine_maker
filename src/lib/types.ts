@@ -3,6 +3,7 @@ export type ScheduleEvent = {
   subtitle: string;
   color: string;
   rowSpan?: number;
+  colSpan?: number;
 };
 
 export type ScheduleData = {

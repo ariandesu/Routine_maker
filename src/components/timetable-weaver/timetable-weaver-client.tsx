@@ -17,7 +17,7 @@ import jsPDF from 'jspdf';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
-  const [days] = useState<string[]>(initialDays);
+  const [days, setDays] = useState<string[]>(initialDays);
   const [timeSlots, setTimeSlots] = useState<string[]>(initialTimeSlots);
   const [headingText, setHeadingText] = useState<string>('My Weekly Schedule');
   const [isMounted, setIsMounted] = useState(false);
@@ -42,13 +42,16 @@ export default function TimetableWeaverClient() {
         if (decoded.theme) {
             setTheme(decoded.theme as any);
         }
+        if (decoded.days) {
+            setDays(decoded.days);
+        }
         if (decoded.timeSlots) {
             setTimeSlots(decoded.timeSlots);
         }
         if (decoded.headingText) {
           setHeadingText(decoded.headingText);
         }
-        if(decoded.schedule || decoded.font || decoded.theme || decoded.timeSlots || decoded.headingText) {
+        if(decoded.schedule || decoded.font || decoded.theme || decoded.days || decoded.timeSlots || decoded.headingText) {
             toast({
                 title: "Shared Settings Loaded",
                 description: "A shared schedule and/or appearance settings have been loaded from the URL.",
@@ -245,6 +248,7 @@ export default function TimetableWeaverClient() {
                   <ScheduleGrid 
                   ref={printableRef}
                   days={days}
+                  onDaysChange={setDays}
                   timeSlots={timeSlots}
                   onTimeSlotsChange={setTimeSlots}
                   schedule={schedule}

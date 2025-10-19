@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect } from 'react';
@@ -81,10 +82,20 @@ export function EventDialog({ isOpen, onClose, cellKey, eventData, onSave, selec
         color: data.color,
       };
       
+      const currentSpan = cellKey.includes('-') ? eventData?.colSpan : eventData?.rowSpan;
+      
       if (selectionSize > 1) {
-        newEvent.rowSpan = selectionSize;
-      } else if (eventData?.rowSpan) {
-        newEvent.rowSpan = eventData.rowSpan;
+        if (cellKey.includes('-')) { // This logic assumes keys are Day-Time, might need adjustment
+             newEvent.colSpan = selectionSize;
+        } else {
+             newEvent.rowSpan = selectionSize;
+        }
+      } else if (currentSpan) {
+        if (cellKey.includes('-')) {
+             newEvent.colSpan = currentSpan;
+        } else {
+             newEvent.rowSpan = currentSpan;
+        }
       }
       onSave(cellKey, newEvent);
     }
