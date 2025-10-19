@@ -24,6 +24,7 @@ export default function TimetableWeaverClient() {
   const printableRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const [cellWidth, setCellWidth] = useState(110);
+  const [cellHeight, setCellHeight] = useState(70);
   
   useEffect(() => {
     try {
@@ -308,6 +309,8 @@ export default function TimetableWeaverClient() {
                   onExport={handleExport}
                   cellWidth={cellWidth}
                   onCellWidthChange={(value) => setCellWidth(value[0])}
+                  cellHeight={cellHeight}
+                  onCellHeightChange={(value) => setCellHeight(value[0])}
                 />
             </header>
             <div className={'font-body'}>
@@ -324,6 +327,7 @@ export default function TimetableWeaverClient() {
               onHeadingTextChange={setHeadingText}
               isExporting={isExporting}
               cellWidth={cellWidth}
+              cellHeight={cellHeight}
               />
             </div>
         </div>

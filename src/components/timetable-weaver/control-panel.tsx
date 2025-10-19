@@ -19,9 +19,11 @@ interface ControlPanelProps {
   onExport: (format: 'PNG' | 'JPG' | 'PDF' | 'CSV') => void;
   cellWidth: number;
   onCellWidthChange: (value: number[]) => void;
+  cellHeight: number;
+  onCellHeightChange: (value: number[]) => void;
 }
 
-export function ControlPanel({ onShare, onImport, onExport, cellWidth, onCellWidthChange }: ControlPanelProps) {
+export function ControlPanel({ onShare, onImport, onExport, cellWidth, onCellWidthChange, cellHeight, onCellHeightChange }: ControlPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
@@ -46,16 +48,29 @@ export function ControlPanel({ onShare, onImport, onExport, cellWidth, onCellWid
         </DropdownMenu>
         <Button variant="outline" onClick={onShare}><Share2 className="mr-2 h-4 w-4" /> Share</Button>
       </div>
-      <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-48">
-        <ZoomOut/>
-        <Slider
-            min={80} 
-            max={250}
-            step={10}
-            value={[cellWidth]}
-            onValueChange={onCellWidthChange}
-        />
-        <ZoomIn/>
+      <div className="flex items-center gap-4 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-36">
+          <Label htmlFor="width-slider" className="text-xs">Width</Label>
+          <Slider
+              id="width-slider"
+              min={80} 
+              max={250}
+              step={10}
+              value={[cellWidth]}
+              onValueChange={onCellWidthChange}
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-36">
+          <Label htmlFor="height-slider" className="text-xs">Height</Label>
+          <Slider
+              id="height-slider"
+              min={50} 
+              max={150}
+              step={10}
+              value={[cellHeight]}
+              onValueChange={onCellHeightChange}
+          />
+        </div>
       </div>
     </div>
   );

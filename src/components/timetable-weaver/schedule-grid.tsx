@@ -21,6 +21,7 @@ interface ScheduleGridProps {
   onHeadingTextChange: (text: string) => void;
   isExporting?: boolean;
   cellWidth: number;
+  cellHeight: number;
 }
 
 type Selection = {
@@ -30,7 +31,7 @@ type Selection = {
 } | null;
 
 export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
-  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, onMoveEvent, headingText, onHeadingTextChange, isExporting, cellWidth }, ref) => {
+  ({ days, onDaysChange, timeSlots, onTimeSlotsChange, schedule, onUpdateEvent, onMoveEvent, headingText, onHeadingTextChange, isExporting, cellWidth, cellHeight }, ref) => {
     const [selectedCell, setSelectedCell] = React.useState<string | null>(null);
     const [isEventDialogOpen, setIsEventDialogOpen] = React.useState(false);
     const [selection, setSelection] = React.useState<Selection>(null);
@@ -292,7 +293,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
-              gridTemplateRows: `auto auto repeat(${days.length}, minmax(70px, 1fr)) auto`,
+              gridTemplateRows: `auto auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
             }}
             onMouseUp={handleMouseUp}
             onMouseLeave={() => setDragOverKey(null)}
