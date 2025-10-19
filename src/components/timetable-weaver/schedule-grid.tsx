@@ -293,7 +293,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
             className="grid" 
             style={{ 
               gridTemplateColumns: `minmax(120px, 0.5fr) repeat(${timeSlots.length}, minmax(${cellWidth}px, 1fr)) auto`,
-              gridTemplateRows: `auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
+              gridTemplateRows: `auto auto repeat(${days.length}, minmax(${cellHeight}px, 1fr)) auto`,
             }}
             onMouseUp={handleMouseUp}
             onMouseLeave={() => setDragOverKey(null)}
@@ -318,22 +318,32 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                 />
               )}
             </div>
+            
+            {/* Corner */}
+            <div className={cn("border-r border-b bg-card", !isExporting && "sticky left-0")}></div>
 
-            {/* Time Slot Inputs - Hidden but used for data management */}
-            <div style={{ display: 'none' }}>
-                {timeSlots.map((time, timeIndex) => (
-                    <div key={`header-${timeIndex}`}>
+            {/* Time Slot Headers */}
+            {timeSlots.map((time, timeIndex) => (
+                <div key={`header-${timeIndex}`} className="p-1 text-center text-xs sm:text-sm font-semibold text-muted-foreground border-r border-b flex items-center justify-center group relative">
+                    {isExporting ? (
+                      <div className="h-9 w-full flex items-center justify-center">{time}</div>
+                    ) : (
+                      <>
                         <Input
-                            type="text"
-                            value={time}
-                            onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
+                          type="text"
+                          value={time}
+                          onChange={(e) => handleTimeSlotChange(timeIndex, e.target.value)}
+                          className="h-9 w-full bg-card border-none text-center text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-ring"
                         />
-                        <Button onClick={() => removeTimeSlot(timeIndex)}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ))}
-            </div>
+                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 absolute -right-1.5" onClick={() => removeTimeSlot(timeIndex)}>
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </>
+                    )}
+                </div>
+            ))}
+             <div className="border-b"></div>
+
 
             {/* Days and Cells */}
             {days.map((day, dayIndex) => (
@@ -400,9 +410,6 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="text-neutral-400 font-bold text-2xl">+</span>
                         </div>
-                      )}
-                      {!event && (
-                        <span className="absolute top-1 left-2 text-neutral-400 text-[10px] font-medium pointer-events-none">{time}</span>
                       )}
                     </div>
                   );
