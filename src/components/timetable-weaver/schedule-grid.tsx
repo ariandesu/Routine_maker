@@ -318,16 +318,6 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                 />
               )}
             </div>
-            
-            {/* Corner */}
-            <div className={cn("border-r border-b bg-card", !isExporting && "sticky left-0")}></div>
-
-            {/* Empty cells for time column headers */}
-            {timeSlots.map((_, timeIndex) => (
-              <div key={`header-${timeIndex}`} className="border-r border-b"></div>
-            ))}
-            <div className="border-b"></div>
-
 
             {/* Days and Cells */}
             {days.map((day, dayIndex) => (
