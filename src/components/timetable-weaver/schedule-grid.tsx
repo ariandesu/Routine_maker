@@ -38,7 +38,6 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
 
     const handleMouseDown = (dayIndex: number, timeIndex: number) => {
       setIsSelecting(true);
-      const day = days[dayIndex];
       const key = `${dayIndex}-${timeIndex}`;
       setSelection({
         start: { dayIndex, timeIndex, key },
@@ -50,7 +49,6 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
 
     const handleMouseEnter = (dayIndex: number, timeIndex: number) => {
       if (isSelecting && selection && dayIndex === selection.dayIndex) {
-        const day = days[dayIndex];
         const key = `${dayIndex}-${timeIndex}`;
         const newEnd = { dayIndex, timeIndex, key };
         setSelection({
@@ -97,7 +95,7 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
         return () => {
           window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [isSelecting, selection]);
+    }, [isSelecting, selection, schedule]);
 
 
     const isCellSelected = (dayIndex: number, timeIndex: number) => {
@@ -350,8 +348,8 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                     <div
                       key={key}
                       className={cn(
-                          "border-r border-b p-1 cursor-pointer hover:bg-accent/20 transition-colors relative group",
-                          isCellSelected(dayIndex, timeIndex) && "bg-accent/40"
+                          "border-r border-b p-1 cursor-pointer hover:bg-neutral-100 transition-colors relative group",
+                          isCellSelected(dayIndex, timeIndex) && "bg-neutral-200"
                       )}
                       style={{
                         gridColumn: event?.colSpan ? `span ${event.colSpan}` : 'span 1'
@@ -360,13 +358,13 @@ export const ScheduleGrid = React.forwardRef<HTMLDivElement, ScheduleGridProps>(
                       onMouseEnter={() => handleMouseEnter(dayIndex, timeIndex)}
                     >
                       {event ? (
-                        <div className={cn("h-full w-full rounded p-2 text-primary-foreground flex flex-col justify-center", event.color)}>
+                        <div className={cn("h-full w-full rounded p-2 text-black flex flex-col justify-center", event.color, 'border border-neutral-300')}>
                            <p className="font-bold text-xs sm:text-sm leading-tight">{event.title}</p>
                            <p className="text-xs opacity-80 mt-1">{event.subtitle}</p>
                         </div>
                       ) : (
                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-accent font-bold text-2xl">+</span>
+                            <span className="text-neutral-400 font-bold text-2xl">+</span>
                         </div>
                       )}
                     </div>

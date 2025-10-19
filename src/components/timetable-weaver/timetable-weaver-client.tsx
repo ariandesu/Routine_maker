@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { ControlPanel } from '@/components/timetable-weaver/control-panel';
 import { ScheduleGrid } from '@/components/timetable-weaver/schedule-grid';
 import { initialScheduleData, initialDays, initialTimeSlots } from '@/components/timetable-weaver/data';
@@ -10,7 +9,6 @@ import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTheme } from '@/context/theme-provider';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -25,8 +23,7 @@ export default function TimetableWeaverClient() {
   const { toast } = useToast();
   const printableRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const { font, setFont, theme, setTheme } = useTheme();
-
+  
   useEffect(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -35,12 +32,6 @@ export default function TimetableWeaverClient() {
         const decoded = JSON.parse(atob(data));
         if (decoded.schedule) {
           setSchedule(decoded.schedule);
-        }
-        if (decoded.font) {
-            setFont(decoded.font as any);
-        }
-        if (decoded.theme) {
-            setTheme(decoded.theme as any);
         }
         if (decoded.days) {
             setDays(decoded.days);
@@ -51,10 +42,10 @@ export default function TimetableWeaverClient() {
         if (decoded.headingText) {
           setHeadingText(decoded.headingText);
         }
-        if(decoded.schedule || decoded.font || decoded.theme || decoded.days || decoded.timeSlots || decoded.headingText) {
+        if(decoded.schedule || decoded.days || decoded.timeSlots || decoded.headingText) {
             toast({
                 title: "Shared Settings Loaded",
-                description: "A shared schedule and/or appearance settings have been loaded from the URL.",
+                description: "A shared schedule has been loaded from the URL.",
             });
         }
       }
@@ -68,7 +59,7 @@ export default function TimetableWeaverClient() {
     } finally {
       setIsMounted(true);
     }
-  }, [toast, setFont, setTheme]);
+  }, [toast]);
 
   const handleUpdateEvent = (key: string, event: ScheduleEvent | null, keysToRemove: string[] = []) => {
     setSchedule(prev => {
@@ -85,15 +76,11 @@ export default function TimetableWeaverClient() {
 
   const handleShare = () => {
     try {
-      const themeData = {
-          font: localStorage.getItem('timetable-font') || 'font-body',
-          theme: localStorage.getItem('timetable-theme') || 'theme-indigo',
-      }
-      const data = { schedule, days, timeSlots, headingText, ...themeData };
+      const data = { schedule, days, timeSlots, headingText };
       const base64 = btoa(JSON.stringify(data));
       const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
       navigator.clipboard.writeText(url);
-      toast({ title: "Link Copied!", description: "Schedule and appearance settings link copied to clipboard." });
+      toast({ title: "Link Copied!", description: "Schedule link copied to clipboard." });
     } catch (error) {
       console.error("Failed to create share link", error);
       toast({
@@ -137,10 +124,9 @@ export default function TimetableWeaverClient() {
               const key = `${dayIdx}-${timeIdx}`;
               const title = cols[header.indexOf('Title')] || '';
               const subtitle = cols[header.indexOf('Subtitle')] || '';
-              const color = cols[header.indexOf('Color')] || 'bg-slate-300';
               const colSpan = parseInt(cols[header.indexOf('ColSpan')] || '1');
               
-              newSchedule[key] = { title, subtitle, color, colSpan };
+              newSchedule[key] = { title, subtitle, color: 'bg-white', colSpan };
           }
         });
         
@@ -160,7 +146,7 @@ export default function TimetableWeaverClient() {
   const handleExport = async (format: 'PNG' | 'JPG' | 'PDF' | 'CSV') => {
     if (format === 'CSV') {
       try {
-        const header = ['Day', 'Time', 'Title', 'Subtitle', 'Color', 'ColSpan'];
+        const header = ['Day', 'Time', 'Title', 'Subtitle', 'ColSpan'];
         const rows = Object.entries(schedule).map(([key, event]) => {
           const [dayIndex, timeIndex] = key.split('-').map(Number);
           return [
@@ -168,7 +154,6 @@ export default function TimetableWeaverClient() {
             timeSlots[timeIndex],
             event.title,
             event.subtitle,
-            event.color,
             event.colSpan || 1
           ].join(',');
         });
@@ -212,7 +197,6 @@ export default function TimetableWeaverClient() {
       description: `Your schedule is being prepared as a ${format} file.`,
     });
 
-    // Use a short timeout to allow the UI to update with isExporting=true
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
@@ -222,17 +206,7 @@ export default function TimetableWeaverClient() {
         logging: false,
         onclone: (document) => {
             const body = document.body;
-            const root = document.documentElement;
-            const themeClassName = theme || 'theme-indigo';
-            
-            body.classList.add(themeClassName);
-            root.classList.add(themeClassName);
-            
-            const style = window.getComputedStyle(document.body);
-            const bgColor = style.getPropertyValue('--card').trim();
-            if (bgColor) {
-                body.style.backgroundColor = `hsl(${bgColor})`;
-            }
+            body.style.backgroundColor = 'white';
         },
       });
       setIsExporting(false);
@@ -288,43 +262,34 @@ export default function TimetableWeaverClient() {
   }
 
   return (
-    <div className={cn(theme, "min-h-svh")}>
-        <SidebarProvider>
-        <Sidebar collapsible="offcanvas">
-            <ControlPanel 
-              onShare={handleShare}
-              onImport={handleImport}
-              onExport={handleExport}
-            />
-        </Sidebar>
-        <SidebarInset>
-            <div className="p-2 sm:p-4 md:p-8">
-                <header className="flex items-center justify-between mb-6 md:mb-8">
-                    <div className="flex items-center gap-2 sm:gap-4">
-                    <SidebarTrigger />
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by MHR3D</h1>
-                        <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
-                    </div>
-                    </div>
-                </header>
-                <div className={cn(font)}>
-                  <ScheduleGrid 
-                  ref={printableRef}
-                  days={days}
-                  onDaysChange={setDays}
-                  timeSlots={timeSlots}
-                  onTimeSlotsChange={setTimeSlots}
-                  schedule={schedule}
-                  onUpdateEvent={handleUpdateEvent}
-                  headingText={headingText}
-                  onHeadingTextChange={setHeadingText}
-                  isExporting={isExporting}
-                  />
+    <div className={"min-h-svh bg-background"}>
+        <div className="p-2 sm:p-4 md:p-8">
+            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by MHR3D</h1>
+                    <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
+                <ControlPanel 
+                  onShare={handleShare}
+                  onImport={handleImport}
+                  onExport={handleExport}
+                />
+            </header>
+            <div className={'font-body'}>
+              <ScheduleGrid 
+              ref={printableRef}
+              days={days}
+              onDaysChange={setDays}
+              timeSlots={timeSlots}
+              onTimeSlotsChange={setTimeSlots}
+              schedule={schedule}
+              onUpdateEvent={handleUpdateEvent}
+              headingText={headingText}
+              onHeadingTextChange={setHeadingText}
+              isExporting={isExporting}
+              />
             </div>
-        </SidebarInset>
-        </SidebarProvider>
+        </div>
     </div>
   );
 }
