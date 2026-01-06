@@ -337,7 +337,7 @@ export default function TimetableWeaverClient() {
             
             <div className="my-8 flex justify-center">
               <AdsteraAd
-                adKey="f987ffec7b67481c3b397f3fe2863149"
+                adKey="7a4e124a397cf3d963a6f15182dc5fde"
                 width={468}
                 height={60}
               />
@@ -361,3 +361,5 @@ export default function TimetableWeaverClient() {
     </div>
   );
 }
+
+    
