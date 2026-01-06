@@ -307,12 +307,19 @@ export default function TimetableWeaverClient() {
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by DesignPublic</h1>
                     <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
-                <DimensionControls
-                    cellWidth={cellWidth}
-                    onCellWidthChange={(value) => setCellWidth(value[0])}
-                    cellHeight={cellHeight}
-                    onCellHeightChange={(value) => setCellHeight(value[0])}
-                />
+                <div className="flex flex-col gap-4 items-center sm:items-end">
+                  <DimensionControls
+                      cellWidth={cellWidth}
+                      onCellWidthChange={(value) => setCellWidth(value[0])}
+                      cellHeight={cellHeight}
+                      onCellHeightChange={(value) => setCellHeight(value[0])}
+                  />
+                  <ActionButtons
+                      onShare={handleShare}
+                      onImport={handleImport}
+                      onExport={handleExport}
+                  />
+                </div>
             </header>
             <div className={'font-body'}>
               <ScheduleGrid 
@@ -334,27 +341,16 @@ export default function TimetableWeaverClient() {
 
             <Separator className="my-8" />
             
-            <div className="my-8">
+            <div className="my-8 flex justify-center">
               <AdsteraAd
                 adKey="f987ffec7b67481c3b397f3fe2863149"
                 width={468}
                 height={60}
               />
-              <AdsenseAd
-                adClient="ca-pub-YOUR_PUBLISHER_ID"
-                adSlot="YOUR_AD_SLOT_ID"
-                style={{ display: 'block' }}
-                adFormat="auto"
-                fullWidthResponsive="true"
-              />
             </div>
             
             <footer className="flex justify-center">
-              <ActionButtons
-                onShare={handleShare}
-                onImport={handleImport}
-                onExport={handleExport}
-              />
+              {/* Action buttons were here */}
             </footer>
         </div>
     </div>
