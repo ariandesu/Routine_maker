@@ -27,7 +27,7 @@ export function AdsteraAd({ adKey, width, height }: AdsteraAdProps) {
       
       const adScript = document.createElement('script');
       adScript.type = 'text/javascript';
-      adScript.src = `//www.topcreativeformat.com/${adKey}/invoke.js`;
+      adScript.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
 
       adRef.current.innerHTML = '';
       adRef.current.appendChild(configScript);

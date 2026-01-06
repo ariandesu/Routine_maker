@@ -336,7 +336,7 @@ export default function TimetableWeaverClient() {
             
             <div className="my-8">
               <AdsteraAd
-                adKey="YOUR_ADSTERA_KEY"
+                adKey="f987ffec7b67481c3b397f3fe2863149"
                 width={468}
                 height={60}
               />
