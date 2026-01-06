@@ -5,53 +5,86 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Simple LZ-based compression
+// More effective LZ-based compression
 export function compressData(data: object): string {
   const json = JSON.stringify(data);
-  let dict: { [key: string]: number } = {};
-  let text = json.split("");
-  let result: number[] = [];
-  let phrase = text[0];
-  let code = 256;
-  for (let i = 1; i < text.length; i++) {
-    let cur = text[i];
-    if (dict[phrase + cur] != null) {
-      phrase += cur;
+  if (!json) return "";
+
+  const dict = new Map<string, number>();
+  const out: number[] = [];
+  let p = "";
+  let dictSize = 256;
+
+  for (let i = 0; i < json.length; i++) {
+    const c = json[i];
+    const pc = p + c;
+    if (dict.has(pc)) {
+      p = pc;
     } else {
-      result.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-      dict[phrase + cur] = code;
-      code++;
-      phrase = cur;
+      out.push(p.length > 1 ? dict.get(p)! : p.charCodeAt(0));
+      dict.set(pc, dictSize++);
+      p = c;
     }
   }
-  result.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-  const binaryString = String.fromCharCode.apply(null, result);
-  return encodeURIComponent(btoa(unescape(encodeURIComponent(binaryString))));
+  if (p !== "") {
+    out.push(p.length > 1 ? dict.get(p)! : p.charCodeAt(0));
+  }
+  
+  // Convert to a binary string
+  const binaryString = out.map(c => String.fromCharCode(c)).join('');
+  
+  // Base64 encode and make it URL-safe
+  return btoa(binaryString)
+    .replace(/\+/g, '-') // Convert '+' to '-'
+    .replace(/\//g, '_') // Convert '/' to '_'
+    .replace(/=+$/, ''); // Remove trailing '='
 }
 
-// Decompression for the LZ-based algorithm
-export function decompressData(encoded: string): any {
-    const str = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
-    const data = str.split("").map(c => c.charCodeAt(0));
-    let dict: { [key: number]: string } = {};
-    let currChar = String.fromCharCode(data[0]);
-    let oldPhrase = currChar;
-    let result = [currChar];
-    let code = 256;
-    let phrase;
-    for (let i = 1; i < data.length; i++) {
-        let currCode = data[i];
-        if (currCode < 256) {
-            phrase = String.fromCharCode(data[i]);
-        } else {
-            phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
-        }
-        result.push(phrase);
-        currChar = phrase.charAt(0);
-        dict[code] = oldPhrase + currChar;
-        code++;
-        oldPhrase = phrase;
+
+// Decompression for the improved LZ-based algorithm
+export function decompressData(str: string): any {
+  if (!str) return {};
+
+  // URL-safe Base64 decode
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  
+  const data = atob(base64).split('').map(c => c.charCodeAt(0));
+  if (data.length === 0) return {};
+
+  const dict: string[] = [];
+  for (let i = 0; i < 256; i++) {
+    dict[i] = String.fromCharCode(i);
+  }
+
+  let w = String.fromCharCode(data[0]);
+  let result = w;
+  let entry = "";
+  let dictSize = 256;
+
+  for (let i = 1; i < data.length; i++) {
+    const k = data[i];
+    if (dict[k]) {
+      entry = dict[k];
+    } else {
+      if (k === dictSize) {
+        entry = w + w.charAt(0);
+      } else {
+        return {}; // Invalid compressed data
+      }
     }
-    const json = result.join("");
-    return JSON.parse(json);
+
+    result += entry;
+    dict[dictSize++] = w + entry.charAt(0);
+    w = entry;
+  }
+  
+  try {
+    return JSON.parse(result);
+  } catch (e) {
+    console.error("Decompression failed:", e);
+    return {};
+  }
 }
