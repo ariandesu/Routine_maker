@@ -308,16 +308,16 @@ export default function TimetableWeaverClient() {
                     <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
                 <div className="flex flex-col gap-4 items-center sm:items-end">
+                  <ActionButtons
+                      onShare={handleShare}
+                      onImport={handleImport}
+                      onExport={handleExport}
+                  />
                   <DimensionControls
                       cellWidth={cellWidth}
                       onCellWidthChange={(value) => setCellWidth(value[0])}
                       cellHeight={cellHeight}
                       onCellHeightChange={(value) => setCellHeight(value[0])}
-                  />
-                  <ActionButtons
-                      onShare={handleShare}
-                      onImport={handleImport}
-                      onExport={handleExport}
                   />
                 </div>
             </header>
