@@ -72,7 +72,7 @@
 @layer components {
   /* From Uiverse.io by cuzpq */
   .theme-checkbox {
-    --toggle-size: 16px;
+    --toggle-size: 12px;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
