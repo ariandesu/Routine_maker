@@ -10,11 +10,10 @@ import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import { cn, compressData, decompressData } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Separator } from '../ui/separator';
-import { AdsenseAd } from '../adsense-ad';
 import { AdsteraAd } from '../adstera-ad';
 
 export default function TimetableWeaverClient() {
@@ -35,7 +34,7 @@ export default function TimetableWeaverClient() {
       const urlParams = new URLSearchParams(window.location.search);
       const data = urlParams.get('data');
       if (data) {
-        const decoded = JSON.parse(atob(data));
+        const decoded = decompressData(data);
         if (decoded.schedule) {
           setSchedule(decoded.schedule);
         }
@@ -115,8 +114,8 @@ export default function TimetableWeaverClient() {
   const handleShare = () => {
     try {
       const data = { schedule, days, timeSlots, headingText };
-      const base64 = btoa(JSON.stringify(data));
-      const url = `${window.location.origin}/?data=${encodeURIComponent(base64)}`;
+      const compressed = compressData(data);
+      const url = `${window.location.origin}/?data=${compressed}`;
       navigator.clipboard.writeText(url);
       toast({ title: "Link Copied!", description: "Schedule link copied to clipboard." });
     } catch (error) {
