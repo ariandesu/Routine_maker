@@ -232,6 +232,59 @@ export default function TimetableWeaverClient() {
     }
   };
 
+  const handleImport = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      try {
+        const rows = text.split('\n').slice(1);
+        const newSchedule: ScheduleData = {};
+        const newDays = [...days];
+        const newTimeSlots = [...timeSlots];
+
+        rows.forEach(row => {
+          if (!row.trim()) return;
+          const [day, time, title, subtitle, colSpan] = row.split(',');
+
+          let dayIndex = newDays.indexOf(day);
+          if (dayIndex === -1) {
+            dayIndex = newDays.length;
+            newDays.push(day);
+          }
+
+          let timeIndex = newTimeSlots.indexOf(time);
+          if (timeIndex === -1) {
+            timeIndex = newTimeSlots.length;
+            newTimeSlots.push(time);
+          }
+
+          const key = `${dayIndex}-${timeIndex}`;
+          newSchedule[key] = {
+            title: title || '',
+            subtitle: subtitle || '',
+            colSpan: colSpan ? parseInt(colSpan, 10) : 1,
+          };
+        });
+
+        setDays(newDays);
+        setTimeSlots(newTimeSlots);
+        setSchedule(newSchedule);
+        toast({
+          title: "Import Successful!",
+          description: "Your schedule has been imported from the CSV file.",
+        });
+      } catch (error) {
+        console.error("CSV Import failed", error);
+        toast({
+          variant: "destructive",
+          title: "Import Failed",
+          description: "Could not parse the CSV file. Please check the format.",
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
+
   if (!isMounted) {
     return (
        <div className="p-4 md:p-8">
@@ -258,6 +311,7 @@ export default function TimetableWeaverClient() {
                   <ActionButtons
                       onShare={handleShare}
                       onExport={handleExport}
+                      onImport={handleImport}
                   />
                   <DimensionControls
                       cellWidth={cellWidth}
