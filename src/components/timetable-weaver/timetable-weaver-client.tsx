@@ -128,58 +128,6 @@ export default function TimetableWeaverClient() {
     }
   };
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      try {
-        const rows = text.split('\n');
-        const header = rows[0].split(',').map(h => h.trim());
-        const dayIndex = header.indexOf('Day');
-        const timeIndex = header.indexOf('Time');
-
-        if (dayIndex === -1 || timeIndex === -1) {
-            toast({ variant: "destructive", title: "Import Failed", description: "CSV must contain 'Day' and 'Time' columns." });
-            return;
-        }
-
-        const importedDays = Array.from(new Set(rows.slice(1).map(row => row.split(',')[dayIndex].trim()).filter(Boolean)));
-        const importedTimeSlots = Array.from(new Set(rows.slice(1).map(row => row.split(',')[timeIndex].trim()).filter(Boolean)));
-
-        const newSchedule: ScheduleData = {};
-        rows.slice(1).forEach(row => {
-          const cols = row.split(',').map(c => c.trim());
-          const day = cols[dayIndex];
-          const time = cols[timeIndex];
-          const dayIdx = importedDays.indexOf(day);
-          const timeIdx = importedTimeSlots.indexOf(time);
-
-          if (dayIdx !== -1 && timeIdx !== -1) {
-              const key = `${dayIdx}-${timeIdx}`;
-              const title = cols[header.indexOf('Title')] || '';
-              const subtitle = cols[header.indexOf('Subtitle')] || '';
-              const colSpan = parseInt(cols[header.indexOf('ColSpan')] || '1');
-              
-              newSchedule[key] = { title, subtitle, colSpan };
-          }
-        });
-        
-        setDays(importedDays);
-        setTimeSlots(importedTimeSlots);
-        setSchedule(newSchedule);
-        toast({ title: "Import Successful", description: "Schedule has been imported from CSV." });
-      } catch (error) {
-        console.error("Failed to import CSV", error);
-        toast({ variant: "destructive", title: "Import Failed", description: "The CSV file could not be parsed." });
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-  };
-  
   const handleExport = async (format: 'PNG' | 'JPG' | 'PDF' | 'CSV') => {
     if (format === 'CSV') {
       try {
@@ -309,7 +257,6 @@ export default function TimetableWeaverClient() {
                 <div className="flex flex-col gap-4 items-center sm:items-end">
                   <ActionButtons
                       onShare={handleShare}
-                      onImport={handleImport}
                       onExport={handleExport}
                   />
                   <DimensionControls
