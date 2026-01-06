@@ -298,7 +298,7 @@ export default function TimetableWeaverClient() {
         <div className="p-2 sm:p-4 md:p-8">
             <header className="flex flex-col sm:flex-row items-center justify-between mb-6 md:mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by DesignPublic</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-primary">Routine Organizer by MHR3D</h1>
                     <p className="text-sm text-muted-foreground">Craft your perfect schedule with ease.</p>
                 </div>
                 <div className="flex flex-col gap-4 items-center sm:items-end">
