@@ -8,13 +8,13 @@ import { ScheduleGrid } from '@/components/timetable-weaver/schedule-grid';
 import { initialScheduleData, initialDays, initialTimeSlots } from '@/components/timetable-weaver/data';
 import type { ScheduleData, ScheduleEvent } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn, compressData, decompressData } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Separator } from '../ui/separator';
 import { AdsteraAd } from '../adstera-ad';
+import Loader from '../loader';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -287,14 +287,8 @@ export default function TimetableWeaverClient() {
 
   if (!isMounted) {
     return (
-       <div className="p-4 md:p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Skeleton className="h-10 w-64 mb-2" />
-            <Skeleton className="h-4 w-80" />
-          </div>
-        </div>
-        <Skeleton className="h-[600px] w-full" />
+      <div className="w-full h-svh flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
