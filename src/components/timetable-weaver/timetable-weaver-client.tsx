@@ -348,8 +348,18 @@ export default function TimetableWeaverClient() {
               />
             </div>
             
-            <footer className="flex justify-center">
-              {/* Action buttons were here */}
+            <footer className="flex justify-center mt-8 text-center text-muted-foreground">
+              <p>
+                Connect with me on{' '}
+                <a
+                  href="https://www.linkedin.com/in/mahirfaisal777"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  LinkedIn
+                </a>
+              </p>
             </footer>
         </div>
     </div>
