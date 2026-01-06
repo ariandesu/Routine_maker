@@ -30,7 +30,7 @@ export function DimensionControls({ cellWidth, onCellWidthChange, cellHeight, on
             <Slider
                 id="height-slider"
                 min={50} 
-                max={150}
+                max={250}
                 step={10}
                 value={[cellHeight]}
                 onValueChange={onCellHeightChange}
