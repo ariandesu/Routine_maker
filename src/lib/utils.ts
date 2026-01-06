@@ -25,12 +25,13 @@ export function compressData(data: object): string {
     }
   }
   result.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-  return encodeURIComponent(btoa(String.fromCharCode.apply(null, result)));
+  const binaryString = String.fromCharCode.apply(null, result);
+  return encodeURIComponent(btoa(unescape(encodeURIComponent(binaryString))));
 }
 
 // Decompression for the LZ-based algorithm
 export function decompressData(encoded: string): any {
-    const str = atob(decodeURIComponent(encoded));
+    const str = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
     const data = str.split("").map(c => c.charCodeAt(0));
     let dict: { [key: number]: string } = {};
     let currChar = String.fromCharCode(data[0]);
