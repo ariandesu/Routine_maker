@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Separator } from '../ui/separator';
+import { AdsenseAd } from '../adsense-ad';
 
 export default function TimetableWeaverClient() {
   const [schedule, setSchedule] = useState<ScheduleData>(initialScheduleData);
@@ -331,6 +332,16 @@ export default function TimetableWeaverClient() {
             </div>
 
             <Separator className="my-8" />
+            
+            <div className="my-8">
+              <AdsenseAd
+                adClient="ca-pub-YOUR_PUBLISHER_ID"
+                adSlot="YOUR_AD_SLOT_ID"
+                style={{ display: 'block' }}
+                adFormat="auto"
+                fullWidthResponsive="true"
+              />
+            </div>
             
             <footer className="flex justify-center">
               <ActionButtons
