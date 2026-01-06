@@ -349,8 +349,8 @@ export default function TimetableWeaverClient() {
             </div>
             
             <footer className="flex justify-center mt-8 text-center text-muted-foreground">
-              <p>
-                Connect with me on{' '}
+               <p>
+                Spotted a bug, or just want to connect? Find me on{' '}
                 <a
                   href="https://www.linkedin.com/in/mahirfaisal777"
                   target="_blank"
@@ -359,6 +359,7 @@ export default function TimetableWeaverClient() {
                 >
                   LinkedIn
                 </a>
+                , before I get lost in my own schedule.
               </p>
             </footer>
         </div>
