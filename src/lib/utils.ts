@@ -1,93 +1,43 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import pako from 'pako';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// LZW-based compression
 export function compressData(data: object): string {
-  const json = JSON.stringify(data);
-  if (!json) return "";
-
-  const dict: { [key: string]: number } = {};
-  const out: number[] = [];
-  let p = "";
-  let dictSize = 256;
-
-  for (let i = 0; i < 256; i++) {
-    dict[String.fromCharCode(i)] = i;
+  try {
+    const json = JSON.stringify(data);
+    const compressed = pako.deflate(json, { to: 'string' });
+    // btoa is safe here because pako's string output is compatible
+    const base64 = btoa(compressed);
+    return base64
+      .replace(/\+/g, '-') // URL-safe
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  } catch (e) {
+    console.error("Compression failed:", e);
+    return "";
   }
-
-  for (let i = 0; i < json.length; i++) {
-    const c = json[i];
-    const pc = p + c;
-    if (dict.hasOwnProperty(pc)) {
-      p = pc;
-    } else {
-      out.push(dict[p]);
-      dict[pc] = dictSize++;
-      p = c;
-    }
-  }
-  if (p !== "") {
-    out.push(dict[p]);
-  }
-
-  // Convert to a binary string before base64 encoding
-  const binaryString = out.map(c => String.fromCharCode(c)).join('');
-
-  // Base64 encode and make it URL-safe
-  return btoa(binaryString)
-    .replace(/\+/g, '-') // Convert '+' to '-'
-    .replace(/\//g, '_') // Convert '/' to '_'
-    .replace(/=+$/, ''); // Remove trailing '='
 }
 
-// Decompression for the LZW-based algorithm
 export function decompressData(str: string): any {
   if (!str) return {};
 
-  // URL-safe Base64 decode
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (base64.length % 4) {
-    base64 += '=';
-  }
-
   try {
-    const data = atob(base64).split('').map(c => c.charCodeAt(0));
-    if (data.length === 0) return {};
-
-    const dict: string[] = [];
-    for (let i = 0; i < 256; i++) {
-      dict[i] = String.fromCharCode(i);
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
     }
 
-    let w = String.fromCharCode(data[0]);
-    let result = w;
-    let entry = "";
-    let dictSize = 256;
-
-    for (let i = 1; i < data.length; i++) {
-      const k = data[i];
-      if (dict[k]) {
-        entry = dict[k];
-      } else {
-        if (k === dictSize) {
-          entry = w + w.charAt(0);
-        } else {
-          throw new Error("Invalid compressed data");
-        }
-      }
-
-      result += entry;
-      dict[dictSize++] = w + entry.charAt(0);
-      w = entry;
-    }
-    
-    return JSON.parse(result);
+    // atob is safe here as we're reversing the btoa process
+    const compressed = atob(base64);
+    const restored = pako.inflate(compressed, { to: 'string' });
+    return JSON.parse(restored);
   } catch (e) {
     console.error("Decompression failed:", e);
+    // Return empty object on error to prevent app crash
     return {};
   }
 }
